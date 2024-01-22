@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace EasyTestServer.Tests.Api;
+namespace EasyTestServer.Tests.Api.Infrastructure;
 
 [PrimaryKey("Id")]
 public class TestEntity

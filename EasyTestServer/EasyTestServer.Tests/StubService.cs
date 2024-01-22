@@ -1,4 +1,5 @@
 using EasyTestServer.Tests.Api;
+using EasyTestServer.Tests.Api.Domain;
 
 namespace EasyTestServer.Tests;
 

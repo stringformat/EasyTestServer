@@ -3,6 +3,9 @@ using System.Net.Http.Json;
 using EasyTestServer.Builder;
 using EasyTestServer.EntityFramework;
 using EasyTestServer.Tests.Api;
+using EasyTestServer.Tests.Api.Api;
+using EasyTestServer.Tests.Api.Domain;
+using EasyTestServer.Tests.Api.Infrastructure;
 using FluentAssertions;
 using NSubstitute;
 
@@ -19,7 +22,7 @@ public class EasyServerBuilderTests
         
         var httpClient = testServer.CreateClient();
 
-        var createRequest = new Request("test value");
+        var createRequest = new CreateRequest("test value");
         var createResponse = await httpClient.PostAsJsonAsync("api/create-value", createRequest);
         var id = (await createResponse.Content.ReadFromJsonAsync<CreateResponse>())!.Id;
 

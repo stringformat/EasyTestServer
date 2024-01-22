@@ -1,4 +1,6 @@
-﻿namespace EasyTestServer.Tests.Api;
+﻿using EasyTestServer.Tests.Api.Infrastructure;
+
+namespace EasyTestServer.Tests.Api.Domain;
 
 public interface IService
 {

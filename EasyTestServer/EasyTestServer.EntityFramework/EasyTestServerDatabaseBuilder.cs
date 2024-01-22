@@ -5,11 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EasyTestServer.EntityFramework;
 
-public class DatabaseBuilder(EasyTestServerBuilder builder)
+public class EasyTestServerDatabaseBuilder(EasyTestServerBuilder builder)
 {
     private readonly List<object> _data = new();
 
-    public DatabaseBuilder WithData(object data)
+    public EasyTestServerDatabaseBuilder WithData(object data)
     {
         ArgumentNullException.ThrowIfNull(data);
 
@@ -17,7 +17,7 @@ public class DatabaseBuilder(EasyTestServerBuilder builder)
         return this;
     }
 
-    public DatabaseBuilder WithData(IEnumerable<object> data)
+    public EasyTestServerDatabaseBuilder WithData(IEnumerable<object> data)
     {
         ArgumentNullException.ThrowIfNull(data);
         
