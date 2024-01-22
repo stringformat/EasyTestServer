@@ -5,24 +5,24 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddTransient<IService, Service>();
-builder.Services.AddTransient<IRepository, Repository>();
-builder.Services.AddDbContext<TestContext>(optionsBuilder => optionsBuilder.UseInMemoryDatabase("TestDb"));
+builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddDbContext<UserContext>(optionsBuilder => optionsBuilder.UseInMemoryDatabase("TestDb"));
 
 var app = builder.Build();
 
-app.MapGet("api/get-value/{id:guid}", async (Guid id, IService service) =>
+app.MapGet("api/users/{id:guid}", async (Guid id, IUserService service) =>
 {
-    var result = await service.GetValueAsync(id);
-
-    return new GetResponse(result);
-});
-
-app.MapPost("api/create-value", async (CreateRequest request, IService service) =>
-{
-    var result = await service.CreateValueAsync(request.Value);
+    var user = await service.GetAsync(id);
     
-    return new CreateResponse(result);
+    return user is null ? Results.NotFound() : Results.Ok(new GetUserResponse(user.Name));
+}).WithName("GetUser");
+
+app.MapPost("api/users", async (CreateUserRequest request, IUserService service) =>
+{
+    var createdUserId = await service.CreateAsync(request.Name);
+    
+    return Results.CreatedAtRoute("GetUser", new { id = createdUserId },new CreateUserResponse(createdUserId));
 });
 
 app.Run();

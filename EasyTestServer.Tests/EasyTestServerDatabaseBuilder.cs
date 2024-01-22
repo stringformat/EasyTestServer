@@ -1,6 +1,7 @@
 using System.Net;
 using EasyTestServer.Core;
 using EasyTestServer.EntityFramework;
+using EasyTestServer.Tests.Api.Domain;
 using EasyTestServer.Tests.Api.Infrastructure;
 
 namespace EasyTestServer.Tests;
@@ -11,18 +12,18 @@ public class EasyTestServerDatabaseBuilder
     public async Task Should_ReturnValueFromEntity_When_UseInMemoryDatabaseIsUsedWithTestEntity()
     {
         //arrange
-        var testEntity = new TestEntity { Value = "test value"};
+        var user = new User("jean charles");
         
         var testServer = new EasyTestServerBuilder()
-            .UseDatabase().WithData(testEntity).Build<TestContext>()
+            .UseDatabase().WithData(user).Build<UserContext>()
             .Build<Program>();
         
         var httpClient = testServer.CreateClient();
 
         //act
-        var response = await httpClient.GetAsync($"api/get-value/{testEntity.Id}");
+        var response = await httpClient.GetAsync($"api/users/{user.Id}");
         
         //assert
-        await TestHelper.AssertResponse(response, HttpStatusCode.OK, "test value");
+        await TestHelper.AssertResponse(response, HttpStatusCode.OK, "jean charles");
     }
 }

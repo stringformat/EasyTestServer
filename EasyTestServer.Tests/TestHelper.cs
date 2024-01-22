@@ -7,14 +7,14 @@ namespace EasyTestServer.Tests;
 
 public static class TestHelper
 {
-    public static async Task AssertResponse(HttpResponseMessage response, HttpStatusCode expectedCode, string? expectedValue = null)
+    public static async Task AssertResponse(HttpResponseMessage response, HttpStatusCode expectedCode, string? expectedName = null)
     {
         response.StatusCode.Should().Be(expectedCode);
 
-        if (expectedValue is not null)
+        if (expectedName is not null)
         {
-            var content = await response.Content.ReadFromJsonAsync<GetResponse>();
-            content!.Value.Should().Be(expectedValue);
+            var content = await response.Content.ReadFromJsonAsync<GetUserResponse>();
+            content!.Name.Should().Be(expectedName);
         }
     }
 }

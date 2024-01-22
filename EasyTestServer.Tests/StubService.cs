@@ -2,15 +2,15 @@ using EasyTestServer.Tests.Api.Domain;
 
 namespace EasyTestServer.Tests;
 
-public class StubService : IService
+public class StubService : IUserService
 {
-    public Task<Guid> CreateValueAsync(string value)
+    public Task<Guid> CreateAsync(string name)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<string?> GetValueAsync(Guid id)
+    public async Task<User?> GetAsync(Guid id)
     {
-        return await Task.FromResult("test value from stub");
+        return await Task.FromResult(new User("jean michel stub"));
     }
 }

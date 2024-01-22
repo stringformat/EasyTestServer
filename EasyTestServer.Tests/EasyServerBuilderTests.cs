@@ -18,15 +18,15 @@ public class EasyServerBuilderTests
         
         var httpClient = testServer.CreateClient();
 
-        var createRequest = new CreateRequest("test value");
-        var createResponse = await httpClient.PostAsJsonAsync("api/create-value", createRequest);
-        var id = (await createResponse.Content.ReadFromJsonAsync<CreateResponse>())!.Id;
+        var createRequest = new CreateUserRequest("jean michel");
+        var createResponse = await httpClient.PostAsJsonAsync("api/users", createRequest);
+        var id = (await createResponse.Content.ReadFromJsonAsync<CreateUserResponse>())!.Id;
 
         //act
-        var getResponse = await httpClient.GetAsync($"api/get-value/{id}");
+        var getResponse = await httpClient.GetAsync($"api/users/{id}");
         
         //assert
-        await TestHelper.AssertResponse(getResponse, HttpStatusCode.OK, "test value");
+        await TestHelper.AssertResponse(getResponse, HttpStatusCode.OK, "jean michel");
     }
 
     [Fact]
@@ -34,16 +34,16 @@ public class EasyServerBuilderTests
     {
         //arrange
         var testServer = new EasyTestServerBuilder()
-            .WithService<IService>(new StubService())
+            .WithService<IUserService>(new StubService())
             .Build<Program>();
         
         var httpClient = testServer.CreateClient();
 
         //act
-        var response = await httpClient.GetAsync($"api/get-value/{Guid.NewGuid()}");
+        var response = await httpClient.GetAsync($"api/users/{Guid.NewGuid()}");
         
         //assert
-        await TestHelper.AssertResponse(response, HttpStatusCode.OK, "test value from stub");
+        await TestHelper.AssertResponse(response, HttpStatusCode.OK, "jean michel stub");
     }
     
     [Fact]
@@ -51,18 +51,18 @@ public class EasyServerBuilderTests
     {
         //arrange
         var testServer = new EasyTestServerBuilder()
-            .WithSubstitute<IService>(out var substitute)
+            .WithSubstitute<IUserService>(out var substitute)
             .Build<Program>();
         
-        substitute.GetValueAsync(Arg.Any<Guid>()).ReturnsForAnyArgs("test value from substitute");
+        substitute.GetAsync(Arg.Any<Guid>()).ReturnsForAnyArgs(new User("jean michel substitute"));
         
         var httpClient = testServer.CreateClient();
 
         //act
-        var response = await httpClient.GetAsync($"api/get-value/{Guid.NewGuid()}");
+        var response = await httpClient.GetAsync($"api/users/{Guid.NewGuid()}");
         
         //assert
-        await TestHelper.AssertResponse(response, HttpStatusCode.OK, "test value from substitute");
+        await TestHelper.AssertResponse(response, HttpStatusCode.OK, "jean michel substitute");
     }
     
     [Fact]
@@ -70,7 +70,7 @@ public class EasyServerBuilderTests
     {
         //arrange
         var testServer = new EasyTestServerBuilder()
-            .WithoutService<IService>()
+            .WithoutService<IUserService>()
             .Build<Program>();
         
         var httpClient = testServer.CreateClient();
