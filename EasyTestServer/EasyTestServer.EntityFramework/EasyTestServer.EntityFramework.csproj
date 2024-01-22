@@ -1,11 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <TargetFramework>net8.0</TargetFramework>
+        <WarningsAsErrors>true</WarningsAsErrors>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Version>1.0.0</Version>
         <Authors>Alexis GIMENEZ</Authors>
+        <RepositoryUrl>https://github.com/stringformat/EasyTestServer</RepositoryUrl>
+        <PackageDescription>A tool for smooth, easy use of Microsoft's web host and in-memory test server</PackageDescription>
+        <Description>A tool for smooth, easy use of Microsoft's web host and in-memory test server</Description>
     </PropertyGroup>
 
     <ItemGroup>
