@@ -7,13 +7,13 @@ using NSubstitute;
 
 namespace EasyTestServer.Tests;
 
-public class EasyServerBuilderTests
+public class EasyTestServerTests
 {
     [Fact]
     public async Task Should_ReturnExpectedValue()
     {
         //arrange
-        var testServer = new EasyTestServerBuilder()
+        var testServer = new Core.EasyTestServer()
             .Build<Program>();
         
         var httpClient = testServer.CreateClient();
@@ -33,7 +33,7 @@ public class EasyServerBuilderTests
     public async Task Should_ReturnValueFromStub_When_ReplaceServiceByStub()
     {
         //arrange
-        var testServer = new EasyTestServerBuilder()
+        var testServer = new Core.EasyTestServer()
             .WithService<IUserService>(new StubService())
             .Build<Program>();
         
@@ -50,7 +50,7 @@ public class EasyServerBuilderTests
     public async Task Should_ReturnValueFromSubstitute_ReplaceServiceBySubstitute()
     {
         //arrange
-        var testServer = new EasyTestServerBuilder()
+        var testServer = new Core.EasyTestServer()
             .WithSubstitute<IUserService>(out var substitute)
             .Build<Program>();
         
@@ -69,7 +69,7 @@ public class EasyServerBuilderTests
     public async Task Should_ReturnError500_When_RemoveService()
     {
         //arrange
-        var testServer = new EasyTestServerBuilder()
+        var testServer = new Core.EasyTestServer()
             .WithoutService<IUserService>()
             .Build<Program>();
         

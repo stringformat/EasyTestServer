@@ -6,7 +6,7 @@ using EasyTestServer.Tests.Api.Infrastructure;
 
 namespace EasyTestServer.Tests;
 
-public class EasyTestServerDatabaseBuilder
+public class EasyTestServerDatabaseTests
 {
     [Fact]
     public async Task Should_ReturnNameFromUser1_When_UseInMemoryDatabaseIsUsedWithUser1Initialized()
@@ -15,7 +15,7 @@ public class EasyTestServerDatabaseBuilder
         var user1 = new User("jean charles");
         var user2 = new User("jean paul");
         
-        var testServer = new EasyTestServerBuilder()
+        var testServer = new Core.EasyTestServer()
             .UseDatabase()
                 .WithData(user1)
                 .WithData(user2)

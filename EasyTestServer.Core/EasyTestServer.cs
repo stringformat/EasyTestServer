@@ -8,11 +8,11 @@ using NSubstitute;
 
 namespace EasyTestServer.Core;
 
-public class EasyTestServerBuilder(string? environment = null)
+public class EasyTestServer(string? environment = null)
 {
     public Collection<Action<IServiceCollection>> ActionsOnServiceCollection { get; } = new();
 
-    public EasyTestServerBuilder WithService<TService, TImplementation>()
+    public EasyTestServer WithService<TService, TImplementation>()
         where TService : class
         where TImplementation : class, TService
     {
@@ -20,21 +20,21 @@ public class EasyTestServerBuilder(string? environment = null)
         return this;
     }
 
-    public EasyTestServerBuilder WithService<TService>(TService service)
+    public EasyTestServer WithService<TService>(TService service)
         where TService : class
     {
         ActionsOnServiceCollection.Add(services => services.ReplaceService<TService>(service));
         return this;
     }
 
-    public EasyTestServerBuilder WithoutService<TService>()
+    public EasyTestServer WithoutService<TService>()
         where TService : class
     {
         ActionsOnServiceCollection.Add(services => services.RemoveService<TService>());
         return this;
     }
 
-    public EasyTestServerBuilder WithSubstitute<TService>(out TService substitute)
+    public EasyTestServer WithSubstitute<TService>(out TService substitute)
         where TService : class
     {
         var service = Substitute.For<TService>();
