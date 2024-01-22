@@ -27,4 +27,4 @@ jobs:
     - name: Pack
       run: dotnet pack --configuration Release
     - name: Push
-      run: dotnet nuget push "**/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "nuget.org"
+      run: dotnet nuget push "**/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "nuget.org" --skip-duplicate
