@@ -1,12 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using EasyTestServer.Builder;
-using EasyTestServer.EntityFramework;
-using EasyTestServer.Tests.Api;
 using EasyTestServer.Tests.Api.Api;
 using EasyTestServer.Tests.Api.Domain;
-using EasyTestServer.Tests.Api.Infrastructure;
-using FluentAssertions;
 using NSubstitute;
 
 namespace EasyTestServer.Tests;
@@ -30,7 +26,7 @@ public class EasyServerBuilderTests
         var getResponse = await httpClient.GetAsync($"api/get-value/{id}");
         
         //assert
-        await AssertResponse(getResponse, HttpStatusCode.OK, "test value");
+        await TestHelper.AssertResponse(getResponse, HttpStatusCode.OK, "test value");
     }
 
     [Fact]
@@ -47,7 +43,7 @@ public class EasyServerBuilderTests
         var response = await httpClient.GetAsync($"api/get-value/{Guid.NewGuid()}");
         
         //assert
-        await AssertResponse(response, HttpStatusCode.OK, "test value from stub");
+        await TestHelper.AssertResponse(response, HttpStatusCode.OK, "test value from stub");
     }
     
     [Fact]
@@ -66,7 +62,7 @@ public class EasyServerBuilderTests
         var response = await httpClient.GetAsync($"api/get-value/{Guid.NewGuid()}");
         
         //assert
-        await AssertResponse(response, HttpStatusCode.OK, "test value from substitute");
+        await TestHelper.AssertResponse(response, HttpStatusCode.OK, "test value from substitute");
     }
     
     [Fact]
@@ -83,36 +79,6 @@ public class EasyServerBuilderTests
         var response = await httpClient.GetAsync($"api/get-value/{Guid.NewGuid()}");
         
         //assert
-        await AssertResponse(response, HttpStatusCode.InternalServerError);
-    }
-    
-    [Fact]
-    public async Task Test()
-    {
-        //arrange
-        var testEntity = new TestEntity { Value = "test value"};
-        
-        var testServer = new EasyTestServerBuilder()
-            .UseDatabase().WithData(testEntity).Build<TestContext>()
-            .Build<Program>();
-        
-        var httpClient = testServer.CreateClient();
-
-        //act
-        var response = await httpClient.GetAsync($"api/get-value/{testEntity.Id}");
-        
-        //assert
-        await AssertResponse(response, HttpStatusCode.OK, "test value");
-    }
-    
-    private static async Task AssertResponse(HttpResponseMessage response, HttpStatusCode expectedCode, string? expectedValue = null)
-    {
-        response.StatusCode.Should().Be(expectedCode);
-
-        if (expectedValue is not null)
-        {
-            var content = await response.Content.ReadFromJsonAsync<GetResponse>();
-            content!.Value.Should().Be(expectedValue);
-        }
+        await TestHelper.AssertResponse(response, HttpStatusCode.InternalServerError);
     }
 }
