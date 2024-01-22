@@ -11,6 +11,7 @@
         <RepositoryUrl>https://github.com/stringformat/EasyTestServer</RepositoryUrl>
         <PackageDescription>A tool for smooth, easy use of Microsoft's web host and in-memory test server</PackageDescription>
         <Description>A tool for smooth, easy use of Microsoft's web host and in-memory test server</Description>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
