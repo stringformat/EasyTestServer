@@ -43,24 +43,25 @@ You can simply use EasyTestServer to initialize your test with the program you w
 
 ```csharp
 [Fact]
-public async Task Should_ReturnExpectedValue()
+public async Task Should_ReturnExpectedUserName()
 {
-    // Arrange
-    var testServer = new EasyTestServer()
+    //arrange
+    var testServer = new Server()
         .Build<Program>();
     
     var httpClient = testServer.CreateClient();
 
-    // create user to retrieve
-    var createRequest = new CreateUserRequest("jean michel");
-    var createResponse = await httpClient.PostAsJsonAsync("api/users", createRequest);
+    // setup user to get
+    var createResponse = await httpClient.PostAsJsonAsync("api/users", new CreateUserRequest("jean michel"));
     var id = (await createResponse.Content.ReadFromJsonAsync<CreateUserResponse>())!.Id;
 
-    // Act
-    var getResponse = await httpClient.GetAsync($"api/users/{id}");
+    //act
+    var response = await httpClient.GetAsync($"api/users/{id}");
     
-    // Assert
-    await TestHelper.AssertResponse(getResponse, HttpStatusCode.OK, "jean michel");
+    //assert
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    var content = await response.Content.ReadFromJsonAsync<GetUserResponse>();
+    content!.Name.Should().Be("jean michel");
 }
 ```
 
@@ -88,10 +89,10 @@ You can simply use '.WithService' to replace a service with your stub :
 
 ```csharp
 [Fact]
-public async Task Should_ReturnValueFromStub_When_ReplaceServiceByStub()
+public async Task Should_ReturnUserNameFromStub_When_WithServiceReplaceServiceByStub()
 {
     //arrange
-    var testServer = new EasyTestServer()
+    var testServer = new Server()
         .WithService<IUserService>(new StubService())
         .Build<Program>();
     
@@ -101,7 +102,9 @@ public async Task Should_ReturnValueFromStub_When_ReplaceServiceByStub()
     var response = await httpClient.GetAsync($"api/users/{Guid.NewGuid()}");
     
     //assert
-    await TestHelper.AssertResponse(response, HttpStatusCode.OK, "jean michel stub");
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    var content = await response.Content.ReadFromJsonAsync<GetUserResponse>();
+    content!.Name.Should().Be("jean michel stub");
 }
 ```
 
@@ -109,10 +112,10 @@ And you can do the same to use NSubstitute directly (Thank's to https://github.c
 
 ```csharp
 [Fact]
-public async Task Should_ReturnValueFromSubstitute_ReplaceServiceBySubstitute()
+public async Task Should_ReturnUserNameFromSubstitute_When_WithSubstituteReplaceServiceBySubstitute()
 {
     //arrange
-    var testServer = new EasyTestServer()
+    var testServer = new Server()
         .WithSubstitute<IUserService>(out var substitute)
         .Build<Program>();
     
@@ -124,7 +127,9 @@ public async Task Should_ReturnValueFromSubstitute_ReplaceServiceBySubstitute()
     var response = await httpClient.GetAsync($"api/users/{Guid.NewGuid()}");
     
     //assert
-    await TestHelper.AssertResponse(response, HttpStatusCode.OK, "jean michel substitute");
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    var content = await response.Content.ReadFromJsonAsync<GetUserResponse>();
+    content!.Name.Should().Be("jean michel substitute");
 }
 ```
 
@@ -138,13 +143,13 @@ You can initialize data for your test with 'WithData'.
 
 ```csharp
 [Fact]
-public async Task Should_ReturnNameFromUser1_When_UseInMemoryDatabaseIsUsedWithUser1Initialized()
+public async Task Should_ReturnNameFromUser1_When_UseInMemoryDatabaseIsUsedAndWithDataHasAddedUser1()
 {
     //arrange
     var user1 = new User("jean charles");
     var user2 = new User("jean paul");
     
-    var testServer = new EasyTestServer()
+    var testServer = new Server()
         .UseDatabase()
             .WithData(user1)
             .WithData(user2)
@@ -157,7 +162,34 @@ public async Task Should_ReturnNameFromUser1_When_UseInMemoryDatabaseIsUsedWithU
     var response = await httpClient.GetAsync($"api/users/{user1.Id}");
     
     //assert
-    await TestHelper.AssertResponse(response, HttpStatusCode.OK, "jean charles");
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    var content = await response.Content.ReadFromJsonAsync<GetUserResponse>();
+    content!.Name.Should().Be("jean charles");
+}
+```
+
+You can add or replace any appsettings value with 'WithSetting'.
+
+```csharp
+[Fact]
+public async Task Should_ReturnExpectedSettingValue_When_WithSettingIsUsed()
+{
+    //arrange
+    const string settingKey = "TestSetting";
+    
+    var testServer = new Server()
+        .WithSetting(key: settingKey, value: "Expected")
+        .Build<Program>();
+    
+    var httpClient = testServer.CreateClient();
+
+    //act
+    var response = await httpClient.GetAsync($"api/settings/{settingKey}");
+    
+    //assert
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    var content = await response.Content.ReadFromJsonAsync<GetSettingResponse>();
+    content!.Value.Should().Be("Expected");
 }
 ```
 
