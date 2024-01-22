@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\EasyTestServer.Builder\EasyTestServer.Builder.csproj" />
+      <ProjectReference Include="..\EasyTestServer.Core\EasyTestServer.Core.csproj" />
     </ItemGroup>
 
 </Project>

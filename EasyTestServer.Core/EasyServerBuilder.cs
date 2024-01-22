@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
-namespace EasyTestServer.Builder;
+namespace EasyTestServer.Core;
 
 public class EasyTestServerBuilder(string? environment = null)
 {

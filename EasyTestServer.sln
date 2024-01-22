@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyTestServer.Builder", "EasyTestServer.Builder\EasyTestServer.Builder.csproj", "{D1AFFD67-1C83-4A45-B161-8C9C8F334035}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyTestServer.Core", "EasyTestServer.Core\EasyTestServer.Core.csproj", "{D1AFFD67-1C83-4A45-B161-8C9C8F334035}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyTestServer.Tests", "EasyTestServer.Tests\EasyTestServer.Tests.csproj", "{8F67E330-9C80-49E8-B060-01C337931B5F}"
 EndProject

@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\EasyTestServer.Builder\EasyTestServer.Builder.csproj" />
+      <ProjectReference Include="..\EasyTestServer.Core\EasyTestServer.Core.csproj" />
       <ProjectReference Include="..\EasyTestServer.EntityFramework\EasyTestServer.EntityFramework.csproj" />
       <ProjectReference Include="..\EasyTestServer.Tests.Api\EasyTestServer.Tests.Api.csproj" />
     </ItemGroup>

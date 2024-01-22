@@ -1,4 +1,4 @@
-using EasyTestServer.Builder;
+using EasyTestServer.Core;
 
 namespace EasyTestServer.EntityFramework;
 

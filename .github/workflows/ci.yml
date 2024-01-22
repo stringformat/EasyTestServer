@@ -26,7 +26,5 @@ jobs:
       run: dotnet test --no-restore --configuration Release --verbosity normal
     - name: Pack
       run: dotnet pack --configuration Release
-#    - name: Nuget - add source "https://api.nuget.org/v3/index.json"
-#      run: dotnet nuget add source --username string.format --password ${{ secrets.NUGET_API_KEY }} --store-password-in-clear-text --name nuget.org "https://api.nuget.org/v3/index.json"
     - name: Push
       run: dotnet nuget push "**/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "nuget.org"
