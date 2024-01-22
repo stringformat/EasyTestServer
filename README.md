@@ -46,7 +46,7 @@ You can simply use EasyTestServer to initialize your test with the program you w
 public async Task Should_ReturnExpectedValue()
 {
     // Arrange
-    var testServer = new EasyTestServerBuilder()
+    var testServer = new EasyTestServer()
         .Build<Program>();
     
     var httpClient = testServer.CreateClient();
@@ -91,7 +91,7 @@ You can simply use '.WithService' to replace a service with your stub :
 public async Task Should_ReturnValueFromStub_When_ReplaceServiceByStub()
 {
     //arrange
-    var testServer = new EasyTestServerBuilder()
+    var testServer = new EasyTestServer()
         .WithService<IUserService>(new StubService())
         .Build<Program>();
     
@@ -112,7 +112,7 @@ And you can do the same to use NSubstitute directly (Thank's to https://github.c
 public async Task Should_ReturnValueFromSubstitute_ReplaceServiceBySubstitute()
 {
     //arrange
-    var testServer = new EasyTestServerBuilder()
+    var testServer = new EasyTestServer()
         .WithSubstitute<IUserService>(out var substitute)
         .Build<Program>();
     
@@ -144,7 +144,7 @@ public async Task Should_ReturnNameFromUser1_When_UseInMemoryDatabaseIsUsedWithU
     var user1 = new User("jean charles");
     var user2 = new User("jean paul");
     
-    var testServer = new EasyTestServerBuilder()
+    var testServer = new EasyTestServer()
         .UseDatabase()
             .WithData(user1)
             .WithData(user2)
