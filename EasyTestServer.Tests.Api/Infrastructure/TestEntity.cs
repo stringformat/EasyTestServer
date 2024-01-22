@@ -6,5 +6,5 @@ namespace EasyTestServer.Tests.Api.Infrastructure;
 public class TestEntity
 {
     public Guid Id { get; } = Guid.NewGuid();
-    public string Value { get; set; }
+    public required string Value { get; init; }
 }
