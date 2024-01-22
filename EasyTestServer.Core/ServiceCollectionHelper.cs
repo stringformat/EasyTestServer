@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace EasyTestServer.Common;
+namespace EasyTestServer.Core;
 
 public static class ServiceCollectionHelper
 {

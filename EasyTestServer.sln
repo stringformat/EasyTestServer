@@ -8,8 +8,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyTestServer.Tests.Api", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyTestServer.EntityFramework", "EasyTestServer.EntityFramework\EasyTestServer.EntityFramework.csproj", "{34881208-5B63-4662-B3A8-EE522EBEA5AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyTestServer.Common", "EasyTestServer.Common\EasyTestServer.Common.csproj", "{A2D96E52-B2AF-43A6-840F-6A53CB5E3EF2}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,9 +30,5 @@ Global
 		{34881208-5B63-4662-B3A8-EE522EBEA5AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34881208-5B63-4662-B3A8-EE522EBEA5AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34881208-5B63-4662-B3A8-EE522EBEA5AD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A2D96E52-B2AF-43A6-840F-6A53CB5E3EF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A2D96E52-B2AF-43A6-840F-6A53CB5E3EF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A2D96E52-B2AF-43A6-840F-6A53CB5E3EF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A2D96E52-B2AF-43A6-840F-6A53CB5E3EF2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

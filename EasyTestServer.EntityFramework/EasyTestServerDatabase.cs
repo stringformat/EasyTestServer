@@ -1,4 +1,4 @@
-﻿using EasyTestServer.Common;
+﻿using EasyTestServer.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
