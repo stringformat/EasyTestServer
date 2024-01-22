@@ -13,6 +13,7 @@ public class ServerTests
         
         var httpClient = testServer.CreateClient();
 
+        // setup user to get
         var createResponse = await httpClient.PostAsJsonAsync("api/users", new CreateUserRequest("jean michel"));
         var id = (await createResponse.Content.ReadFromJsonAsync<CreateUserResponse>())!.Id;
 
@@ -66,7 +67,7 @@ public class ServerTests
     }
     
     [Fact]
-    public async Task Should_ReturnExpectedSettingValue_When_WithServiceIsUsed()
+    public async Task Should_ReturnExpectedSettingValue_When_WithSettingIsUsed()
     {
         //arrange
         const string settingKey = "TestSetting";
