@@ -1,5 +1,3 @@
-using EasyTestServer.Tests.Api.Domain;
-
 namespace EasyTestServer.Tests;
 
 public class StubService : IUserService

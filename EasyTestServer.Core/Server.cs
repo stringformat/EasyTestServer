@@ -7,11 +7,12 @@ using NSubstitute;
 
 namespace EasyTestServer.Core;
 
-public class EasyTestServer(string? environment = null)
+public class Server(string? environment = null)
 {
-    public Collection<Action<IServiceCollection>> ActionsOnServiceCollection { get; } = new();
+    private readonly Collection<(string key, string value)> _settings = [];
+    public Collection<Action<IServiceCollection>> ActionsOnServiceCollection { get; } = [];
 
-    public EasyTestServer WithService<TService, TImplementation>()
+    public Server WithService<TService, TImplementation>()
         where TService : class
         where TImplementation : class, TService
     {
@@ -19,21 +20,21 @@ public class EasyTestServer(string? environment = null)
         return this;
     }
 
-    public EasyTestServer WithService<TService>(TService service)
+    public Server WithService<TService>(TService service)
         where TService : class
     {
         ActionsOnServiceCollection.Add(services => services.ReplaceService<TService>(service));
         return this;
     }
 
-    public EasyTestServer WithoutService<TService>()
+    public Server WithoutService<TService>()
         where TService : class
     {
         ActionsOnServiceCollection.Add(services => services.RemoveService<TService>());
         return this;
     }
 
-    public EasyTestServer WithSubstitute<TService>(out TService substitute)
+    public Server WithSubstitute<TService>(out TService substitute)
         where TService : class
     {
         var service = Substitute.For<TService>();
@@ -44,18 +45,29 @@ public class EasyTestServer(string? environment = null)
         return this;
     }
 
+    public Server WithSetting(string key, string value)
+    {
+        _settings.Add((key, value));
+
+        return this;
+    }
+
     public TestServer Build<TEntryPoint>() where TEntryPoint : class
     {
         return new WebApplicationFactory<TEntryPoint>()
             .WithWebHostBuilder(webBuilder =>
             {
                 webBuilder
-                    //.UseContentRoot(Directory.GetCurrentDirectory())
                     .ConfigureServices(services =>
                     {
                         foreach (var action in ActionsOnServiceCollection)
                             action(services);
                     });
+
+                foreach (var setting in _settings)
+                {
+                    webBuilder.UseSetting(setting.key, setting.value);
+                }
 
                 if (environment is not null) webBuilder.UseEnvironment(environment);
             }).Server;

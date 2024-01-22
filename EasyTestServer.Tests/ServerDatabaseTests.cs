@@ -1,20 +1,15 @@
-using System.Net;
-using EasyTestServer.EntityFramework;
-using EasyTestServer.Tests.Api.Domain;
-using EasyTestServer.Tests.Api.Infrastructure;
-
 namespace EasyTestServer.Tests;
 
-public class EasyTestServerDatabaseTests
+public class ServerDatabaseTests
 {
     [Fact]
-    public async Task Should_ReturnNameFromUser1_When_UseInMemoryDatabaseIsUsedWithUser1Initialized()
+    public async Task Should_ReturnNameFromUser1_When_UseInMemoryDatabaseIsUsedAndWithDataHasAddedUser1()
     {
         //arrange
         var user1 = new User("jean charles");
         var user2 = new User("jean paul");
         
-        var testServer = new Core.EasyTestServer()
+        var testServer = new Server()
             .UseDatabase()
                 .WithData(user1)
                 .WithData(user2)
@@ -27,6 +22,8 @@ public class EasyTestServerDatabaseTests
         var response = await httpClient.GetAsync($"api/users/{user1.Id}");
         
         //assert
-        await TestHelper.AssertResponse(response, HttpStatusCode.OK, "jean charles");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var content = await response.Content.ReadFromJsonAsync<GetUserResponse>();
+        content!.Name.Should().Be("jean charles");
     }
 }

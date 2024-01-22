@@ -25,4 +25,11 @@ app.MapGet("api/users/{id:guid}", async (Guid id, IUserService service) =>
     return user is null ? Results.NotFound() : Results.Ok(new GetUserResponse(user.Name));
 }).WithName("GetUser");
 
+app.MapGet("api/settings/{key}", (string key, IConfiguration configuration) =>
+{
+    var setting = configuration[key];
+
+    return setting is null ? Results.NotFound() : Results.Ok(new GetSettingResponse(setting));
+});
+
 app.Run();

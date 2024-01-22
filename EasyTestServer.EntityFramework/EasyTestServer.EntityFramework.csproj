@@ -15,6 +15,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="EntityFrameworkCore.InMemory.HierarchyId" Version="8.0.0" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.1" />
     </ItemGroup>
 

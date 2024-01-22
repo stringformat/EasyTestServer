@@ -1,14 +1,10 @@
-﻿using EasyTestServer.Core;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿namespace EasyTestServer.EntityFramework;
 
-namespace EasyTestServer.EntityFramework;
-
-public class EasyTestServerDatabase(Core.EasyTestServer builder)
+public class ServerDatabase(Server builder)
 {
     private readonly List<object> _data = new();
 
-    public EasyTestServerDatabase WithData(object data)
+    public ServerDatabase WithData(object data)
     {
         ArgumentNullException.ThrowIfNull(data);
 
@@ -16,7 +12,7 @@ public class EasyTestServerDatabase(Core.EasyTestServer builder)
         return this;
     }
 
-    public EasyTestServerDatabase WithData(IEnumerable<object> data)
+    public ServerDatabase WithData(IEnumerable<object> data)
     {
         ArgumentNullException.ThrowIfNull(data);
         
@@ -28,7 +24,7 @@ public class EasyTestServerDatabase(Core.EasyTestServer builder)
         return this;
     }
 
-    public Core.EasyTestServer Build<TContext>(string? dbName = null) where TContext : DbContext
+    public Server Build<TContext>(string? dbName = null) where TContext : DbContext
     {
         builder.ActionsOnServiceCollection.Add(CreateTestingDbAndAddData);
 
@@ -39,7 +35,7 @@ public class EasyTestServerDatabase(Core.EasyTestServer builder)
             dbName ??= Guid.NewGuid().ToString();
 
             services.RemoveService<DbContextOptions<TContext>>();
-            services.AddDbContext<TContext>(options => { options.UseInMemoryDatabase(dbName); });
+            services.AddDbContext<TContext>(options => { options.UseInMemoryDatabase(dbName, optionsBuilder => optionsBuilder.UseHierarchyId()); });
 
             var serviceProvider = services.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();

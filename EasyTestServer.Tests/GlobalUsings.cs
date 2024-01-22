@@ -1,1 +1,9 @@
+global using System.Net;
+global using System.Net.Http.Json;
+global using EasyTestServer.Core;
+global using EasyTestServer.EntityFramework;
+global using EasyTestServer.Tests.Api.Api;
+global using EasyTestServer.Tests.Api.Domain;
+global using EasyTestServer.Tests.Api.Infrastructure;
+global using FluentAssertions;
 global using Xunit;
