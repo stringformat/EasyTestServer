@@ -11,18 +11,18 @@ builder.Services.AddDbContext<UserContext>(optionsBuilder => optionsBuilder.UseI
 
 var app = builder.Build();
 
-app.MapGet("api/users/{id:guid}", async (Guid id, IUserService service) =>
-{
-    var user = await service.GetAsync(id);
-    
-    return user is null ? Results.NotFound() : Results.Ok(new GetUserResponse(user.Name));
-}).WithName("GetUser");
-
 app.MapPost("api/users", async (CreateUserRequest request, IUserService service) =>
 {
     var createdUserId = await service.CreateAsync(request.Name);
     
     return Results.CreatedAtRoute("GetUser", new { id = createdUserId },new CreateUserResponse(createdUserId));
 });
+
+app.MapGet("api/users/{id:guid}", async (Guid id, IUserService service) =>
+{
+    var user = await service.GetAsync(id);
+    
+    return user is null ? Results.NotFound() : Results.Ok(new GetUserResponse(user.Name));
+}).WithName("GetUser");
 
 app.Run();
