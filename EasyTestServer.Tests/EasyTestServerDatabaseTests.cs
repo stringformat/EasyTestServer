@@ -1,5 +1,4 @@
 using System.Net;
-using EasyTestServer.Core;
 using EasyTestServer.EntityFramework;
 using EasyTestServer.Tests.Api.Domain;
 using EasyTestServer.Tests.Api.Infrastructure;

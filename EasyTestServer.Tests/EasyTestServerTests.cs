@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using EasyTestServer.Core;
 using EasyTestServer.Tests.Api.Api;
 using EasyTestServer.Tests.Api.Domain;
 using NSubstitute;
