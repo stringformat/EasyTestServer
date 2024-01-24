@@ -7,12 +7,13 @@ using NSubstitute;
 
 namespace EasyTestServer.Core;
 
-public class Server(string? environment = null)
+public class Server(string? environment = null, string? contentRoot = null, params string[] urls)
 {
     private readonly Collection<(string key, string value)> _settings = [];
+    private TestServer _server = null!;
     public Collection<Action<IServiceCollection>> ActionsOnServiceCollection { get; } = [];
 
-    public Server WithService<TService, TImplementation>()
+    public virtual Server WithService<TService, TImplementation>()
         where TService : class
         where TImplementation : class, TService
     {
@@ -20,21 +21,21 @@ public class Server(string? environment = null)
         return this;
     }
 
-    public Server WithService<TService>(TService service)
+    public virtual Server WithService<TService>(TService service)
         where TService : class
     {
         ActionsOnServiceCollection.Add(services => services.ReplaceService<TService>(service));
         return this;
     }
 
-    public Server WithoutService<TService>()
+    public virtual Server WithoutService<TService>()
         where TService : class
     {
         ActionsOnServiceCollection.Add(services => services.RemoveService<TService>());
         return this;
     }
 
-    public Server WithSubstitute<TService>(out TService substitute)
+    public virtual Server WithSubstitute<TService>(out TService substitute)
         where TService : class
     {
         var service = Substitute.For<TService>();
@@ -45,7 +46,7 @@ public class Server(string? environment = null)
         return this;
     }
 
-    public Server WithSetting(string key, string value)
+    public virtual Server WithSetting(string key, string value)
     {
         _settings.Add((key, value));
 
@@ -54,22 +55,30 @@ public class Server(string? environment = null)
 
     public TestServer Build<TEntryPoint>() where TEntryPoint : class
     {
-        return new WebApplicationFactory<TEntryPoint>()
+        _server = new WebApplicationFactory<TEntryPoint>()
             .WithWebHostBuilder(webBuilder =>
             {
                 webBuilder
-                    .ConfigureServices(services =>
+                    .ConfigureTestServices(services =>
                     {
                         foreach (var action in ActionsOnServiceCollection)
                             action(services);
                     });
 
-                foreach (var setting in _settings)
-                {
+                foreach (var setting in _settings) 
                     webBuilder.UseSetting(setting.key, setting.value);
-                }
 
-                if (environment is not null) webBuilder.UseEnvironment(environment);
+                if (environment is not null) 
+                    webBuilder.UseEnvironment(environment);
+
+                if (contentRoot is not null)
+                    webBuilder.UseContentRoot(contentRoot);
+
+                webBuilder.UseUrls(urls);
             }).Server;
+
+        return _server;
     }
+
+    public virtual HttpClient CreateClient() => _server.CreateClient();
 }

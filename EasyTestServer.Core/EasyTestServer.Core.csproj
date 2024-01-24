@@ -7,7 +7,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsPackable>true</IsPackable>
         <PackageId>EasyTestServer</PackageId>
-        <Version>1.1.0</Version>
+        <Version>1.1.1</Version>
         <Authors>Alexis GIMENEZ</Authors>
         <RepositoryUrl>https://github.com/stringformat/EasyTestServer</RepositoryUrl>
         <PackageDescription>A tool for smooth, easy use of Microsoft's web host and in-memory test server</PackageDescription>
