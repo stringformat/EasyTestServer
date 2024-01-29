@@ -12,5 +12,12 @@ public class UserContext(DbContextOptions<UserContext> options) : DbContext(opti
         
         modelBuilder.Entity<User>()
             .Property(x => x.Name);
+
+        modelBuilder.Entity<User>()
+            .OwnsMany(x => x.Friends, builder =>
+            {
+                builder.HasKey(x => x.Id);
+                builder.Property(x => x.Name);
+            });
     }
 }

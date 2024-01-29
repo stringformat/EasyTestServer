@@ -1,13 +1,11 @@
 namespace EasyTestServer.Tests.Api.Domain;
 
-public class User
+public class Friend
 {
     public Guid Id { get; } = Guid.NewGuid();
     public string Name { get; }
 
-    public ICollection<Friend> Friends { get; } = [];
-    
-    public User(string name)
+    public Friend(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         
@@ -15,12 +13,7 @@ public class User
     }
 
     //ORM
-    private User()
+    private Friend()
     {
-    }
-
-    public void AddFriend(Friend friend)
-    {
-        Friends.Add(friend);
     }
 }

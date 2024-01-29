@@ -31,7 +31,7 @@ public class ServerTests
     {
         //arrange
         var testServer = new Server()
-            .WithService<IUserService>(new StubService())
+            .WithService<IUserRepository>(new StubUserRepository())
             .Build<Program>();
         
         var httpClient = testServer.CreateClient();
@@ -50,7 +50,7 @@ public class ServerTests
     {
         //arrange
         var testServer = new Server()
-            .WithSubstitute<IUserService>(out var substitute)
+            .WithSubstitute<IUserRepository>(out var substitute)
             .Build<Program>();
         
         substitute.GetAsync(Arg.Any<Guid>()).ReturnsForAnyArgs(new User("jean michel substitute"));
@@ -112,7 +112,7 @@ public class ServerTests
     {
         //arrange
         var testServer = new Server()
-            .WithoutService<IUserService>()
+            .WithoutService<IUserRepository>()
             .Build<Program>();
         
         var httpClient = testServer.CreateClient();

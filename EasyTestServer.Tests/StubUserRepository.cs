@@ -1,8 +1,8 @@
 namespace EasyTestServer.Tests;
 
-public class StubService : IUserService
+public class StubUserRepository : IUserRepository
 {
-    public Task<Guid> CreateAsync(string name)
+    public Task CreateAsync(User entity)
     {
         throw new NotImplementedException();
     }
@@ -10,5 +10,10 @@ public class StubService : IUserService
     public async Task<User?> GetAsync(Guid id)
     {
         return await Task.FromResult(new User("jean michel stub"));
+    }
+
+    public void Update(User entity)
+    {
+        throw new NotImplementedException();
     }
 }

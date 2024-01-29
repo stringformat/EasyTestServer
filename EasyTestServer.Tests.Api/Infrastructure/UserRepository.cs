@@ -7,6 +7,7 @@ public interface IUserRepository
 {
     Task CreateAsync(User entity);
     Task<User?> GetAsync(Guid id);
+    void Update(User entity);
 }
 
 public class UserRepository(UserContext context) : IUserRepository
@@ -14,15 +15,17 @@ public class UserRepository(UserContext context) : IUserRepository
     public async Task CreateAsync(User entity)
     {
         await context.Set<User>().AddAsync(entity);
-
-        await context.SaveChangesAsync();
+    }
+    
+    public void Update(User entity)
+    {
+        context.Set<User>().Update(entity);
     }
 
     public async Task<User?> GetAsync(Guid id)
     {
         return await context
             .Set<User>()
-            .AsNoTracking()
             .SingleOrDefaultAsync(x => x.Id == id);
     }
 }

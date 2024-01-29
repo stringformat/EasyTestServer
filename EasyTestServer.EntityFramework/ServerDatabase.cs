@@ -1,8 +1,10 @@
-﻿namespace EasyTestServer.EntityFramework;
+﻿using System.Collections.ObjectModel;
+
+namespace EasyTestServer.EntityFramework;
 
 public class ServerDatabase(Server builder)
 {
-    private readonly List<object> _data = new();
+    private readonly Collection<object> _data = [];
 
     public ServerDatabase WithData(object data)
     {
@@ -24,20 +26,25 @@ public class ServerDatabase(Server builder)
         return this;
     }
 
-    public Server Build<TContext>(string? dbName = null) where TContext : DbContext
+    public Server Build<TContext>(bool useInMemoryDb = true, string? dbName = null) where TContext : DbContext
     {
-        builder.ActionsOnServiceCollection.Add(CreateTestingDbAndAddData);
+        if(useInMemoryDb)
+            builder.ActionsOnServiceCollection.Add(ReplaceDbByTestingDb);
+        
+        builder.ActionsOnServiceCollection.Add(AddData);
 
         return builder;
 
-        void CreateTestingDbAndAddData(IServiceCollection services)
+        void ReplaceDbByTestingDb(IServiceCollection serviceCollection)
         {
             dbName ??= Guid.NewGuid().ToString();
+            serviceCollection.RemoveService<DbContextOptions<TContext>>();
+            serviceCollection.AddDbContext<TContext>(options => options.UseInMemoryDatabase(dbName, optionsBuilder => optionsBuilder.UseHierarchyId()));
+        }
 
-            services.RemoveService<DbContextOptions<TContext>>();
-            services.AddDbContext<TContext>(options => { options.UseInMemoryDatabase(dbName, optionsBuilder => optionsBuilder.UseHierarchyId()); });
-
-            var serviceProvider = services.BuildServiceProvider();
+        void AddData(IServiceCollection serviceCollection)
+        {
+            var serviceProvider = serviceCollection.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<TContext>();
             context.Database.EnsureCreated();

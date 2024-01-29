@@ -7,13 +7,12 @@ using NSubstitute;
 
 namespace EasyTestServer.Core;
 
-public class Server(string? environment = null, string? contentRoot = null, params string[] urls)
+public class Server
 {
     private readonly Collection<(string key, string value)> _settings = [];
-    private TestServer _server = null!;
     public Collection<Action<IServiceCollection>> ActionsOnServiceCollection { get; } = [];
 
-    public virtual Server WithService<TService, TImplementation>()
+    public Server WithService<TService, TImplementation>()
         where TService : class
         where TImplementation : class, TService
     {
@@ -21,21 +20,21 @@ public class Server(string? environment = null, string? contentRoot = null, para
         return this;
     }
 
-    public virtual Server WithService<TService>(TService service)
+    public Server WithService<TService>(TService service)
         where TService : class
     {
         ActionsOnServiceCollection.Add(services => services.ReplaceService<TService>(service));
         return this;
     }
 
-    public virtual Server WithoutService<TService>()
+    public Server WithoutService<TService>()
         where TService : class
     {
         ActionsOnServiceCollection.Add(services => services.RemoveService<TService>());
         return this;
     }
 
-    public virtual Server WithSubstitute<TService>(out TService substitute)
+    public Server WithSubstitute<TService>(out TService substitute)
         where TService : class
     {
         var service = Substitute.For<TService>();
@@ -46,16 +45,19 @@ public class Server(string? environment = null, string? contentRoot = null, para
         return this;
     }
 
-    public virtual Server WithSetting(string key, string value)
+    public Server WithSetting(string key, string value)
     {
         _settings.Add((key, value));
 
         return this;
     }
 
-    public TestServer Build<TEntryPoint>() where TEntryPoint : class
+    public TestServer Build<TEntryPoint>(
+        string? environment = null, 
+        string? contentRoot = null,
+        params string[] urls) where TEntryPoint : class
     {
-        _server = new WebApplicationFactory<TEntryPoint>()
+        return new WebApplicationFactory<TEntryPoint>()
             .WithWebHostBuilder(webBuilder =>
             {
                 webBuilder
@@ -65,8 +67,8 @@ public class Server(string? environment = null, string? contentRoot = null, para
                             action(services);
                     });
 
-                foreach (var setting in _settings) 
-                    webBuilder.UseSetting(setting.key, setting.value);
+                foreach (var (key, value) in _settings) 
+                    webBuilder.UseSetting(key, value);
 
                 if (environment is not null) 
                     webBuilder.UseEnvironment(environment);
@@ -76,9 +78,5 @@ public class Server(string? environment = null, string? contentRoot = null, para
 
                 webBuilder.UseUrls(urls);
             }).Server;
-
-        return _server;
     }
-
-    public virtual HttpClient CreateClient() => _server.CreateClient();
 }
