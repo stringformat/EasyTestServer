@@ -9,14 +9,12 @@ public class ServerDatabaseTests
         var user1 = new User("jean charles");
         var user2 = new User("jean paul");
         
-        var testServer = new Server()
+        var httpClient = new Server()
             .UseDatabase()
                 .WithData(user1)
                 .WithData(user2)
                 .Build<UserContext>()
             .Build<Program>();
-        
-        var httpClient = testServer.CreateClient();
 
         //act
         var response = await httpClient.GetAsync($"api/users/{user1.Id}");
@@ -35,13 +33,11 @@ public class ServerDatabaseTests
         var friend = new Friend("jean marie");
         user.Friends.Add(friend);
         
-        var testServer = new Server()
+        var httpClient = new Server()
             .UseDatabase()
                 .WithData(user)
                 .Build<UserContext>(useInMemoryDb: false)
             .Build<Program>();
-        
-        var httpClient = testServer.CreateClient();
         
         //act
         var response = await httpClient.GetFromJsonAsync<GetFriendResponse>($"api/users/{user.Id}/friends/{friend.Id}");

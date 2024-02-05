@@ -8,7 +8,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddDbContext<UserContext>(optionsBuilder => optionsBuilder.UseInMemoryDatabase("TestDb"));
 
+builder.Services.AddAuthentication().AddJwtBearer();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("administrator", policy =>
+        policy
+            .RequireRole("admin")
+            .RequireClaim("scope"));
+
 var app = builder.Build();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapPost("api/users", async (CreateUserRequest request, IUserRepository repository, UserContext context) =>
 {
@@ -20,12 +29,14 @@ app.MapPost("api/users", async (CreateUserRequest request, IUserRepository repos
     return Results.CreatedAtRoute("GetUser", new { id = user.Id },new CreateUserResponse(user.Id));
 });
 
-app.MapGet("api/users/{id:guid}", async (Guid id, IUserRepository repository) =>
+app.MapGet("api/users/{id:guid}", async (Guid id, IUserRepository repository, ILogger<Program> logger) =>
 {
     var user = await repository.GetAsync(id);
     
+    logger.LogInformation($"Try to retrieve user '{id}'");
+    
     return user is null ? Results.NotFound() : Results.Ok(new GetUserResponse(user.Name));
-}).WithName("GetUser");
+}).RequireAuthorization(policyBuilder => policyBuilder.RequireRole("admin")).WithName("GetUser");
 
 app.MapPost("api/users/{id:guid}/friends", async (Guid id, 
     AddFriendRequest request, 

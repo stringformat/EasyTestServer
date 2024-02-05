@@ -1,18 +1,25 @@
+using EasyTestServer.Tests.Logger;
 using NSubstitute;
+using Xunit.Abstractions;
 
 namespace EasyTestServer.Tests;
 
 public class ServerTests
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public ServerTests(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     [Fact]
     public async Task Should_ReturnExpectedUserName()
     {
         //arrange
-        var testServer = new Server()
+        var httpClient = new Server()
             .Build<Program>();
         
-        var httpClient = testServer.CreateClient();
-
         // setup user to get
         var createResponse = await httpClient.PostAsJsonAsync("api/users", new CreateUserRequest("jean michel"));
         var id = (await createResponse.Content.ReadFromJsonAsync<CreateUserResponse>())!.Id;
@@ -30,12 +37,10 @@ public class ServerTests
     public async Task Should_ReturnUserNameFromStub_When_WithServiceReplaceServiceByStub()
     {
         //arrange
-        var testServer = new Server()
+        var httpClient = new Server()
             .WithService<IUserRepository>(new StubUserRepository())
             .Build<Program>();
         
-        var httpClient = testServer.CreateClient();
-
         //act
         var response = await httpClient.GetAsync($"api/users/{Guid.NewGuid()}");
         
@@ -49,14 +54,12 @@ public class ServerTests
     public async Task Should_ReturnUserNameFromSubstitute_When_WithSubstituteReplaceServiceBySubstitute()
     {
         //arrange
-        var testServer = new Server()
+        var httpClient = new Server()
             .WithSubstitute<IUserRepository>(out var substitute)
             .Build<Program>();
         
         substitute.GetAsync(Arg.Any<Guid>()).ReturnsForAnyArgs(new User("jean michel substitute"));
         
-        var httpClient = testServer.CreateClient();
-
         //act
         var response = await httpClient.GetAsync($"api/users/{Guid.NewGuid()}");
         
@@ -67,16 +70,26 @@ public class ServerTests
     }
     
     [Fact]
+    public async Task Should_PrintLoggerMessages_When_WithLoggerProvider()
+    {
+        //arrange
+        var httpClient = new Server()
+            .WithLoggerProvider(new XUnitLoggerProvider(_testOutputHelper))
+            .Build<Program>(options => options.DisableAuthentication = true);
+
+        //act
+        var test = await httpClient.GetAsync($"api/users/{Guid.NewGuid()}");
+    }
+    
+    [Fact]
     public async Task Should_ReturnExpectedSettingValue_When_WithSettingIsUsed()
     {
         //arrange
         const string settingKey = "TestSetting";
         
-        var testServer = new Server()
+        var httpClient = new Server()
             .WithSetting(key: settingKey, value: "Expected")
             .Build<Program>();
-        
-        var httpClient = testServer.CreateClient();
 
         //act
         var response = await httpClient.GetAsync($"api/settings/{settingKey}");
@@ -93,10 +106,8 @@ public class ServerTests
         //arrange
         const string settingKey = "TestSetting";
         
-        var testServer = new Server()
+        var httpClient = new Server()
             .Build<Program>();
-        
-        var httpClient = testServer.CreateClient();
 
         //act
         var response = await httpClient.GetAsync($"api/settings/{settingKey}");
@@ -111,11 +122,9 @@ public class ServerTests
     public async Task Should_ReturnError500_When_WithoutServiceRemoveRequiredService()
     {
         //arrange
-        var testServer = new Server()
+        var httpClient = new Server()
             .WithoutService<IUserRepository>()
             .Build<Program>();
-        
-        var httpClient = testServer.CreateClient();
 
         //act
         var response = await httpClient.GetAsync($"api/users/{Guid.NewGuid()}");
