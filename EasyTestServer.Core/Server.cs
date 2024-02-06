@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -70,34 +69,9 @@ public class Server
         var testServer = new WebApplicationFactory<TEntryPoint>()
             .WithWebHostBuilder(webBuilder =>
             {
-                webBuilder.ConfigureTestServices(services =>
-                {
-                    foreach (var action in ActionsOnServiceCollection)
-                        action(services);
-
-                    if (_serverOptions.DisableAuthentication)
-                        services.ReplaceService<IPolicyEvaluator>(new PolicyEvaluator());
-                });
-
-                webBuilder.ConfigureLogging(builder =>
-                {
-                    if (_serverOptions.DisableLogging)
-                        builder.ClearProviders();
-
-                    foreach (var loggerProvider in _loggerProviders)
-                        builder.AddProvider(loggerProvider);
-                });
-
-                foreach (var (key, value) in _settings)
-                    webBuilder.UseSetting(key, value);
-
-                if (_serverOptions.Environment is not null)
-                    webBuilder.UseEnvironment(_serverOptions.Environment);
-
-                if (_serverOptions.ContentRoot is not null)
-                    webBuilder.UseContentRoot(_serverOptions.ContentRoot);
-
-                webBuilder.UseUrls(_serverOptions.Urls);
+                ConfigureTestServices(webBuilder);
+                ConfigureLogging(webBuilder);
+                ConfigureOptions(webBuilder);
             });
 
         var webApplicationFactoryClientOptions = new WebApplicationFactoryClientOptions
@@ -116,5 +90,43 @@ public class Server
         options(_serverOptions);
 
         return Build<TEntryPoint>();
+    }
+
+    private void ConfigureOptions(IWebHostBuilder webBuilder)
+    {
+        foreach (var (key, value) in _settings)
+            webBuilder.UseSetting(key, value);
+
+        if (_serverOptions.Environment is not null)
+            webBuilder.UseEnvironment(_serverOptions.Environment);
+
+        if (_serverOptions.ContentRoot is not null)
+            webBuilder.UseContentRoot(_serverOptions.ContentRoot);
+
+        webBuilder.UseUrls(_serverOptions.Urls);
+    }
+
+    private void ConfigureLogging(IWebHostBuilder webBuilder)
+    {
+        webBuilder.ConfigureLogging(builder =>
+        {
+            if (_serverOptions.DisableLogging)
+                builder.ClearProviders();
+
+            foreach (var loggerProvider in _loggerProviders)
+                builder.AddProvider(loggerProvider);
+        });
+    }
+
+    private void ConfigureTestServices(IWebHostBuilder webBuilder)
+    {
+        webBuilder.ConfigureTestServices(services =>
+        {
+            foreach (var action in ActionsOnServiceCollection)
+                action(services);
+
+            if (_serverOptions.DisableAuthentication)
+                services.TryReplaceService<IPolicyEvaluator>(new PolicyEvaluator());
+        });
     }
 }

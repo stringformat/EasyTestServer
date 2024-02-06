@@ -31,7 +31,7 @@ public static class ServiceCollectionHelper
         services.Add(addDescriptor);
         return services;
     }
-
+    
     public static IServiceCollection ReplaceService<TService, TImplementation>(this IServiceCollection services)
         where TService : class
         where TImplementation : class, TService
@@ -40,10 +40,36 @@ public static class ServiceCollectionHelper
         services.Replace(new ServiceDescriptor(typeof(TService), typeof(TImplementation), descriptor.Lifetime));
         return services;
     }
+    
+    public static IServiceCollection TryReplaceService<TService, TImplementation>(this IServiceCollection services)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        var descriptor = services.TryFindDescriptor<TService>();
+        if (descriptor is not null)
+            services.Replace(new ServiceDescriptor(typeof(TService), typeof(TImplementation), descriptor.Lifetime));
+        
+        return services;
+    }
 
     public static IServiceCollection ReplaceService<TService>(this IServiceCollection services, object service)
         where TService : class
     {
+        var serviceType = typeof(TService);
+        if (!serviceType.IsInstanceOfType(service))
+            throw new InvalidOperationException($"{service.GetType().Name} is not an instance of {serviceType.Name}");
+
+        var newDescriptor = services.FindDescriptor(serviceType).ToReplaceDescriptor(service);
+        return services.Replace(newDescriptor);
+    }
+    
+    public static IServiceCollection TryReplaceService<TService>(this IServiceCollection services, object service)
+        where TService : class
+    {
+        var descriptor = services.TryFindDescriptor<TService>();
+        if (descriptor is null) 
+            return services;
+        
         var serviceType = typeof(TService);
         if (!serviceType.IsInstanceOfType(service))
             throw new InvalidOperationException($"{service.GetType().Name} is not an instance of {serviceType.Name}");

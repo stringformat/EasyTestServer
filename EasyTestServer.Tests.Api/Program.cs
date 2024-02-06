@@ -36,7 +36,14 @@ app.MapGet("api/users/{id:guid}", async (Guid id, IUserRepository repository, IL
     logger.LogInformation($"Try to retrieve user '{id}'");
     
     return user is null ? Results.NotFound() : Results.Ok(new GetUserResponse(user.Name));
-}).RequireAuthorization(policyBuilder => policyBuilder.RequireRole("admin")).WithName("GetUser");
+}).WithName("GetUser");
+
+app.MapGet("api/secure", (ILogger<Program> logger) =>
+{
+    logger.LogInformation("Access to secure route");
+
+    return Task.FromResult(Results.Ok());
+}).RequireAuthorization("administrator");
 
 app.MapPost("api/users/{id:guid}/friends", async (Guid id, 
     AddFriendRequest request, 

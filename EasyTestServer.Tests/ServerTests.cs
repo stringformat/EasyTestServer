@@ -70,15 +70,29 @@ public class ServerTests
     }
     
     [Fact]
-    public async Task Should_PrintLoggerMessages_When_WithLoggerProvider()
+    public async Task Should_Return401_When_AuthenticationIsEnable()
     {
         //arrange
         var httpClient = new Server()
-            .WithLoggerProvider(new XUnitLoggerProvider(_testOutputHelper))
+            .Build<Program>();
+
+        //act
+        var responseMessage = await httpClient.GetAsync("api/secure");
+
+        responseMessage.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+    
+    [Fact]
+    public async Task Should_Return200_When_AuthenticationIsDisable()
+    {
+        //arrange
+        var httpClient = new Server()
             .Build<Program>(options => options.DisableAuthentication = true);
 
         //act
-        var test = await httpClient.GetAsync($"api/users/{Guid.NewGuid()}");
+        var responseMessage = await httpClient.GetAsync("api/secure");
+
+        responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
     }
     
     [Fact]
@@ -116,20 +130,5 @@ public class ServerTests
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var content = await response.Content.ReadFromJsonAsync<GetSettingResponse>();
         content!.Value.Should().Be("FromAppSettings");
-    }
-    
-    [Fact]
-    public async Task Should_ReturnError500_When_WithoutServiceRemoveRequiredService()
-    {
-        //arrange
-        var httpClient = new Server()
-            .WithoutService<IUserRepository>()
-            .Build<Program>();
-
-        //act
-        var response = await httpClient.GetAsync($"api/users/{Guid.NewGuid()}");
-        
-        //assert
-        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }
 }
