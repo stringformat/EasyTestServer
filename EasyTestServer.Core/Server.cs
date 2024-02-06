@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -9,15 +11,16 @@ using NSubstitute;
 
 namespace EasyTestServer.Core;
 
-public class Server
+public class Server<TEntryPoint> : IDisposable, IAsyncDisposable where TEntryPoint : class
 {
     private readonly ServerOptions _serverOptions = new();
     private readonly Collection<(string key, string value)> _settings = [];
     private readonly Collection<ILoggerProvider> _loggerProviders = [];
     
     public readonly Collection<Action<IServiceCollection>> ActionsOnServiceCollection = [];
+    private WebApplicationFactory<TEntryPoint> _testServer;
 
-    public Server WithService<TService, TImplementation>()
+    public Server<TEntryPoint> WithService<TService, TImplementation>()
         where TService : class
         where TImplementation : class, TService
     {
@@ -25,21 +28,21 @@ public class Server
         return this;
     }
 
-    public Server WithService<TService>(TService service)
+    public Server<TEntryPoint> WithService<TService>(TService service)
         where TService : class
     {
         ActionsOnServiceCollection.Add(services => services.ReplaceService<TService>(service));
         return this;
     }
 
-    public Server WithoutService<TService>()
+    public Server<TEntryPoint> WithoutService<TService>()
         where TService : class
     {
         ActionsOnServiceCollection.Add(services => services.RemoveService<TService>());
         return this;
     }
 
-    public Server WithSubstitute<TService>(out TService substitute)
+    public Server<TEntryPoint> WithSubstitute<TService>(out TService substitute)
         where TService : class
     {
         var service = Substitute.For<TService>();
@@ -50,23 +53,23 @@ public class Server
         return this;
     }
 
-    public Server WithSetting(string key, string value)
+    public Server<TEntryPoint> WithSetting(string key, string value)
     {
         _settings.Add((key, value));
 
         return this;
     }
 
-    public Server WithLoggerProvider(ILoggerProvider loggerProvider)
+    public Server<TEntryPoint> WithLoggerProvider(ILoggerProvider loggerProvider)
     {
         _loggerProviders.Add(loggerProvider);
 
         return this;
     }
 
-    public HttpClient Build<TEntryPoint>() where TEntryPoint : class
+    public HttpClient Build()
     {
-        var testServer = new WebApplicationFactory<TEntryPoint>()
+        _testServer = new WebApplicationFactory<TEntryPoint>()
             .WithWebHostBuilder(webBuilder =>
             {
                 ConfigureTestServices(webBuilder);
@@ -76,20 +79,25 @@ public class Server
 
         var webApplicationFactoryClientOptions = new WebApplicationFactoryClientOptions
         {
-            AllowAutoRedirect = false
+            AllowAutoRedirect = _serverOptions.AllowAutoRedirect
         };
 
         if (_serverOptions.BaseAddress is not null)
             webApplicationFactoryClientOptions.BaseAddress = _serverOptions.BaseAddress;
 
-        return testServer.CreateClient(webApplicationFactoryClientOptions);
+        var client = _testServer.CreateClient(webApplicationFactoryClientOptions);
+        
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(scheme: "operator");
+
+        return client;
     }
     
-    public HttpClient Build<TEntryPoint>(Action<ServerOptions> options) where TEntryPoint : class
+    public HttpClient Build(Action<ServerOptions> options)
     {
         options(_serverOptions);
 
-        return Build<TEntryPoint>();
+        return Build();
     }
 
     private void ConfigureOptions(IWebHostBuilder webBuilder)
@@ -126,7 +134,14 @@ public class Server
                 action(services);
 
             if (_serverOptions.DisableAuthentication)
-                services.TryReplaceService<IPolicyEvaluator>(new PolicyEvaluator());
+                services.AddAuthentication(defaultScheme: "operator")
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                        "operator", options => { });
+                //services.TryReplaceService<IPolicyEvaluator>(new PolicyEvaluator());
         });
     }
+
+    public void Dispose() => _testServer.Dispose();
+
+    public async ValueTask DisposeAsync() => await _testServer.DisposeAsync();
 }

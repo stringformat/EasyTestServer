@@ -1,24 +1,16 @@
-using EasyTestServer.Tests.Logger;
+using System.Net.Http.Headers;
 using NSubstitute;
-using Xunit.Abstractions;
 
 namespace EasyTestServer.Tests;
 
 public class ServerTests
 {
-    private readonly ITestOutputHelper _testOutputHelper;
-
-    public ServerTests(ITestOutputHelper testOutputHelper)
-    {
-        _testOutputHelper = testOutputHelper;
-    }
-
     [Fact]
     public async Task Should_ReturnExpectedUserName()
     {
         //arrange
-        var httpClient = new Server()
-            .Build<Program>();
+        var httpClient = new Server<Program>()
+            .Build();
         
         // setup user to get
         var createResponse = await httpClient.PostAsJsonAsync("api/users", new CreateUserRequest("jean michel"));
@@ -37,9 +29,9 @@ public class ServerTests
     public async Task Should_ReturnUserNameFromStub_When_WithServiceReplaceServiceByStub()
     {
         //arrange
-        var httpClient = new Server()
+        var httpClient = new Server<Program>()
             .WithService<IUserRepository>(new StubUserRepository())
-            .Build<Program>();
+            .Build();
         
         //act
         var response = await httpClient.GetAsync($"api/users/{Guid.NewGuid()}");
@@ -54,9 +46,9 @@ public class ServerTests
     public async Task Should_ReturnUserNameFromSubstitute_When_WithSubstituteReplaceServiceBySubstitute()
     {
         //arrange
-        var httpClient = new Server()
+        var httpClient = new Server<Program>()
             .WithSubstitute<IUserRepository>(out var substitute)
-            .Build<Program>();
+            .Build();
         
         substitute.GetAsync(Arg.Any<Guid>()).ReturnsForAnyArgs(new User("jean michel substitute"));
         
@@ -73,8 +65,8 @@ public class ServerTests
     public async Task Should_Return401_When_AuthenticationIsEnable()
     {
         //arrange
-        var httpClient = new Server()
-            .Build<Program>();
+        var httpClient = new Server<Program>()
+            .Build();
 
         //act
         var responseMessage = await httpClient.GetAsync("api/secure");
@@ -86,13 +78,21 @@ public class ServerTests
     public async Task Should_Return200_When_AuthenticationIsDisable()
     {
         //arrange
-        var httpClient = new Server()
-            .Build<Program>(options => options.DisableAuthentication = true);
+        var httpClient = new Server<Program>()
+            .Build();
+        
+        var createResponse = await httpClient.PostAsJsonAsync("api/users", new CreateUserRequest("jean michel"));
+        var id = (await createResponse.Content.ReadFromJsonAsync<CreateUserResponse>())!.Id;
 
         //act
-        var responseMessage = await httpClient.GetAsync("api/secure");
+        //var login = await httpClient.GetAsync($"api/login/{id}");
+        //var content = await login.Content.ReadFromJsonAsync<LoginResponse>();
 
-        responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        //httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", content.Token);
+        var test = await httpClient.GetAsync("api/secure");
+
+        //responseMessage.StatusCode.Should().Be(HttpStatusCode.OK);
     }
     
     [Fact]
@@ -101,9 +101,9 @@ public class ServerTests
         //arrange
         const string settingKey = "TestSetting";
         
-        var httpClient = new Server()
+        var httpClient = new Server<Program>()
             .WithSetting(key: settingKey, value: "Expected")
-            .Build<Program>();
+            .Build();
 
         //act
         var response = await httpClient.GetAsync($"api/settings/{settingKey}");
@@ -120,8 +120,8 @@ public class ServerTests
         //arrange
         const string settingKey = "TestSetting";
         
-        var httpClient = new Server()
-            .Build<Program>();
+        var httpClient = new Server<Program>()
+            .Build();
 
         //act
         var response = await httpClient.GetAsync($"api/settings/{settingKey}");

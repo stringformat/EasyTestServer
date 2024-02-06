@@ -1,19 +1,37 @@
+using EasyTestServer.Tests.Api;
 using EasyTestServer.Tests.Api.Api;
 using EasyTestServer.Tests.Api.Domain;
 using EasyTestServer.Tests.Api.Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddDbContext<UserContext>(optionsBuilder => optionsBuilder.UseInMemoryDatabase("TestDb"));
+builder.Services.AddSingleton<TokenService>();
 
-builder.Services.AddAuthentication().AddJwtBearer();
+builder.Services.AddAuthentication(config =>
+{
+    config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(config =>
+{
+    config.RequireHttpsMetadata = false;
+    config.SaveToken = true;
+    config.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey("e1d4152c-5255-459a-9905-7818a04cd6ac"u8.ToArray()),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
+
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("administrator", policy =>
-        policy
-            .RequireRole("admin")
-            .RequireClaim("scope"));
+    .AddPolicy("manager", policy => policy.RequireRole("manager"))
+    .AddPolicy("operator", policy => policy.RequireRole("operator"));
 
 var app = builder.Build();
 app.UseAuthentication();
@@ -38,12 +56,24 @@ app.MapGet("api/users/{id:guid}", async (Guid id, IUserRepository repository, IL
     return user is null ? Results.NotFound() : Results.Ok(new GetUserResponse(user.Name));
 }).WithName("GetUser");
 
+app.MapGet("api/login/{id:guid}", async (Guid id, IUserRepository repository, TokenService tokenService) =>
+{
+    var user = await repository.GetAsync(id);
+
+    if (user is null)
+        return Results.NotFound(new { message = "Invalid user" });
+
+    var token = tokenService.GenerateToken(user, "operator");
+    
+    return Results.Ok(new LoginResponse(token));
+});
+
 app.MapGet("api/secure", (ILogger<Program> logger) =>
 {
     logger.LogInformation("Access to secure route");
 
     return Task.FromResult(Results.Ok());
-}).RequireAuthorization("administrator");
+}).RequireAuthorization("operator");
 
 app.MapPost("api/users/{id:guid}/friends", async (Guid id, 
     AddFriendRequest request, 

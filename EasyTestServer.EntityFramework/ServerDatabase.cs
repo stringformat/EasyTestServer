@@ -2,11 +2,12 @@
 
 namespace EasyTestServer.EntityFramework;
 
-public class ServerDatabase(Server builder)
+public class ServerDatabase<TEntryPoint>(Server<TEntryPoint> builder) 
+    where TEntryPoint : class
 {
     private readonly Collection<object> _data = [];
 
-    public ServerDatabase WithData(object data)
+    public ServerDatabase<TEntryPoint> WithData(object data)
     {
         ArgumentNullException.ThrowIfNull(data);
 
@@ -14,7 +15,7 @@ public class ServerDatabase(Server builder)
         return this;
     }
 
-    public ServerDatabase WithData(IEnumerable<object> data)
+    public ServerDatabase<TEntryPoint> WithData(IEnumerable<object> data)
     {
         ArgumentNullException.ThrowIfNull(data);
         
@@ -26,7 +27,8 @@ public class ServerDatabase(Server builder)
         return this;
     }
 
-    public Server Build<TContext>(bool useInMemoryDb = true, string? dbName = null) where TContext : DbContext
+    public Server<TEntryPoint> Build<TContext>(bool useInMemoryDb = true, string? dbName = null)
+        where TContext : DbContext
     {
         if(useInMemoryDb)
             builder.ActionsOnServiceCollection.Add(ReplaceDbByTestingDb);

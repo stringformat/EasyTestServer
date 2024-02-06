@@ -7,5 +7,6 @@ public class ServerOptions
     public Uri? BaseAddress { get; set; } = null;
     public bool DisableLogging { get; set; } = false;
     public bool DisableAuthentication { get; set; } = false;
+    public bool AllowAutoRedirect { get; set; } = false;
     public string[] Urls { get; set; } = [];
 }
