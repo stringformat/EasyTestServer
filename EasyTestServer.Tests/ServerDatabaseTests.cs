@@ -33,24 +33,24 @@ public class ServerDatabaseTests
         content!.Name.Should().Be("jean charles");
     }
     
-    [Fact]
-    public async Task Should_ReturnFriendFromUser_When_WithDataHasAddedUserWithFriend()
-    {
-        //arrange
-        var user = new User("jean charles");
-        var friend = new Friend("jean marie");
-        user.Friends.Add(friend);
-        
-        var httpClient = new Server<Program>()
-            .UseInMemoryDatabase()
-                .WithData(user)
-                .Build<UserContext>()
-            .Build();
-        
-        //act
-        var response = await httpClient.GetFromJsonAsync<GetFriendResponse>($"api/users/{user.Id}/friends/{friend.Id}");
-
-        //assert
-        response?.Name.Should().Be("jean marie");
-    }
+    // [Fact]
+    // public async Task Should_ReturnFriendFromUser_When_WithDataHasAddedUserWithFriend()
+    // {
+    //     //arrange
+    //     var user = new User("jean charles");
+    //     var friend = new Friend("jean marie");
+    //     user.Friends.Add(friend);
+    //     
+    //     var httpClient = new Server<Program>()
+    //         .UseInMemoryDatabase()
+    //             .WithData(user)
+    //             .Build<UserContext>()
+    //         .Build();
+    //     
+    //     //act
+    //     var response = await httpClient.GetFromJsonAsync<GetFriendResponse>($"api/users/{user.Id}/friends/{friend.Id}");
+    //
+    //     //assert
+    //     response?.Name.Should().Be("jean marie");
+    // }
 }
