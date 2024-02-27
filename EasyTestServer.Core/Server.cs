@@ -113,6 +113,9 @@ public class Server<TEntryPoint> where TEntryPoint : class
         if (_serverOptions.ContentRoot is not null)
             webBuilder.UseContentRoot(_serverOptions.ContentRoot);
 
+        if (_serverOptions.SolutionRelativeContentRoot is not null)
+            webBuilder.UseSolutionRelativeContentRoot(_serverOptions.SolutionRelativeContentRoot);
+
         webBuilder.UseUrls(_serverOptions.Urls);
     }
 

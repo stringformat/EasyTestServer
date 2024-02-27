@@ -38,7 +38,7 @@ public class LocalServerDatabase<TEntryPoint> : ServerDatabaseBase<TEntryPoint, 
                 "Database=${dbName}_" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ";", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         RemoveDbContext<TContext>(serviceCollection);
-        serviceCollection.AddDbContext<TContext>(o => o.UseSqlServer(DbOptions.ConnectionString));
+        serviceCollection.AddDbContext<TContext>(o => o.UseSqlServer(DbOptions.ConnectionString, builder => builder.UseHierarchyId()));
     }
 
     private void ReplaceDbByLocalSqlite<TContext>(IServiceCollection serviceCollection)
