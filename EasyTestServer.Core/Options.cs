@@ -1,6 +1,6 @@
 namespace EasyTestServer.Core;
 
-public class ServerOptions
+public class Options
 {
     public string? Environment { get; set; } = null;
     public string? ContentRoot { get; set; } = null;

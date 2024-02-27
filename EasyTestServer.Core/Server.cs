@@ -11,14 +11,16 @@ using NSubstitute;
 
 namespace EasyTestServer.Core;
 
-public class Server<TEntryPoint> : IDisposable, IAsyncDisposable where TEntryPoint : class
+public class Server<TEntryPoint> where TEntryPoint : class
 {
-    private readonly ServerOptions _serverOptions = new();
+    private readonly Options _serverOptions = new();
     private readonly Collection<(string key, string value)> _settings = [];
     private readonly Collection<ILoggerProvider> _loggerProviders = [];
+    private WebApplicationFactory<TEntryPoint> _testServer = null!;
     
     public readonly Collection<Action<IServiceCollection>> ActionsOnServiceCollection = [];
-    private WebApplicationFactory<TEntryPoint> _testServer;
+    // public readonly Collection<Action> DisposableServices = [];
+    // public readonly Collection<Func<ValueTask>> DisposableServicesAsync = [];
 
     public Server<TEntryPoint> WithService<TService, TImplementation>()
         where TService : class
@@ -93,7 +95,7 @@ public class Server<TEntryPoint> : IDisposable, IAsyncDisposable where TEntryPoi
         return client;
     }
     
-    public HttpClient Build(Action<ServerOptions> options)
+    public HttpClient Build(Action<Options> options)
     {
         options(_serverOptions);
 
@@ -140,8 +142,4 @@ public class Server<TEntryPoint> : IDisposable, IAsyncDisposable where TEntryPoi
                 //services.TryReplaceService<IPolicyEvaluator>(new PolicyEvaluator());
         });
     }
-
-    public void Dispose() => _testServer.Dispose();
-
-    public async ValueTask DisposeAsync() => await _testServer.DisposeAsync();
 }

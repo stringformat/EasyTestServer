@@ -1,3 +1,6 @@
+using EasyTestServer.EntityFramework.InMemory;
+using EasyTestServer.EntityFramework.Local;
+
 namespace EasyTestServer.Tests;
 
 public class ServerDatabaseTests
@@ -8,12 +11,17 @@ public class ServerDatabaseTests
         //arrange
         var user1 = new User("jean charles");
         var user2 = new User("jean paul");
-        
+
         var httpClient = new Server<Program>()
-            .UseDatabase()
+            .UseLocalDatabase()
                 .WithData(user1)
                 .WithData(user2)
-                .Build<UserContext>()
+                .Build<UserContext>(options =>
+                {
+                    options.DbType = LocalDbType.SqlServer;
+                    //options.ConnectionString = "Data Source=../EasyTestServer.Tests/test.db";
+                    options.ConnectionString = "Server=(localdb)\\mssqllocaldb;Database=Test;Trusted_Connection=True;ConnectRetryCount=0;Encrypt=False";
+                })
             .Build();
 
         //act
@@ -34,9 +42,9 @@ public class ServerDatabaseTests
         user.Friends.Add(friend);
         
         var httpClient = new Server<Program>()
-            .UseDatabase()
+            .UseInMemoryDatabase()
                 .WithData(user)
-                .Build<UserContext>(useInMemoryDb: false)
+                .Build<UserContext>()
             .Build();
         
         //act
