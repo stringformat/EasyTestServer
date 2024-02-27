@@ -35,6 +35,18 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
 
         return this;
     }
+    
+    public ServerDatabaseBase<TEntryPoint, TOptions> WithData(params object[] data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        
+        foreach (var value in data)
+        {
+            WithData(value);
+        }
+
+        return this;
+    }
 
     public virtual Server<TEntryPoint> Build<TContext>() where TContext : DbContext
     {
@@ -81,9 +93,12 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
     {
         using var scope = serviceCollection.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>().CreateScope();
         using var context = scope.ServiceProvider.GetRequiredService<TContext>();
-        
-        context.AddRange(_data);
-        context.SaveChanges();
+
+        foreach (var data in _data)
+        {
+            context.Add(data);
+            context.SaveChanges();
+        }
     }
 
     // private void Migrate<TContext>(IServiceCollection serviceCollection)
