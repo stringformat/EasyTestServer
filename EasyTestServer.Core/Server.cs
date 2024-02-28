@@ -89,8 +89,8 @@ public class Server<TEntryPoint> where TEntryPoint : class
 
         var client = _testServer.CreateClient(webApplicationFactoryClientOptions);
         
-        client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue(scheme: "operator");
+        // client.DefaultRequestHeaders.Authorization =
+        //     new AuthenticationHeaderValue(scheme: "operator");
 
         return client;
     }
@@ -138,10 +138,10 @@ public class Server<TEntryPoint> where TEntryPoint : class
             foreach (var action in ActionsOnServiceCollection)
                 action(services);
 
-            if (_serverOptions.DisableAuthentication)
-                services.AddAuthentication(defaultScheme: "operator")
-                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
-                        "operator", options => { });
+            // if (_serverOptions.DisableAuthentication)
+            //     services.AddAuthentication(defaultScheme: "operator")
+            //         .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+            //             "operator", options => { });
                 //services.TryReplaceService<IPolicyEvaluator>(new PolicyEvaluator());
         });
     }
