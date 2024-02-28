@@ -16,6 +16,18 @@ public static class ServiceCollectionHelper
 
         return services;
     }
+    
+    public static IServiceCollection RemoveService<TService>(this IServiceCollection services, TService service)
+        where TService : class
+    {
+        var descriptor = services.TryFindDescriptor(typeof(TService));
+        if (descriptor is null) 
+            return services;
+
+        services.Remove(descriptor);
+
+        return services;
+    }
 
     public static IServiceCollection AddOrReplaceService<TService>(
         this IServiceCollection services,

@@ -6,6 +6,7 @@ namespace EasyTestServer.EntityFramework;
 public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoint : class
 {
     private readonly Collection<object> _data = [];
+    private readonly Collection<string> _sqls = [];
     
     protected readonly Server<TEntryPoint> Builder;
     protected readonly TOptions DbOptions;
@@ -47,12 +48,42 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
 
         return this;
     }
+    
+    public ServerDatabaseBase<TEntryPoint, TOptions> WithSql(string sql)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sql);
+
+        _sqls.Add(sql);
+        return this;
+    }
+
+    public ServerDatabaseBase<TEntryPoint, TOptions> WithData(IEnumerable<string> sqls)
+    {
+        ArgumentNullException.ThrowIfNull(sqls);
+        
+        foreach (var sql in sqls)
+        {
+            WithSql(sql);
+        }
+
+        return this;
+    }
+    
+    public ServerDatabaseBase<TEntryPoint, TOptions> WithData(params string[] sqls)
+    {
+        ArgumentNullException.ThrowIfNull(sqls);
+        
+        foreach (var sql in sqls)
+        {
+            WithSql(sql);
+        }
+
+        return this;
+    }
 
     public virtual Server<TEntryPoint> Build<TContext>() where TContext : DbContext
     {
-        Builder.ActionsOnServiceCollection.Add(EnsureCreated<TContext>);
-        Builder.ActionsOnServiceCollection.Add(AddData<TContext>);
-        //Builder.ActionsOnServiceCollection.Add(GetDbContext<TContext>);
+        Builder.ActionsOnServiceCollection.Add(CreateAndFillDb<TContext>);
 
         return Builder;
     }
@@ -63,6 +94,26 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
         options(DbOptions);
 
         return Build<TContext>();
+    }
+    
+    private void CreateAndFillDb<TContext>(IServiceCollection serviceCollection)
+        where TContext : DbContext
+    {
+        using var scope = serviceCollection.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>().CreateScope();
+        using var context = scope.ServiceProvider.GetRequiredService<TContext>();
+        
+        context.Database.EnsureCreated();
+        
+        foreach (var sql in _sqls)
+        {
+            context.Database.ExecuteSqlRaw(sql);
+        }
+        
+        foreach (var data in _data)
+        {
+            context.Add(data);
+            context.SaveChanges();
+        }
     }
 
     // public Server<TEntryPoint> Build<TContext>(out DbContext dbContext)
@@ -87,19 +138,7 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
         serviceCollection.RemoveService<DbContextOptions<TContext>>();
         serviceCollection.RemoveService<DbConnection>();
     }
-
-    private void AddData<TContext>(IServiceCollection serviceCollection)
-        where TContext : DbContext
-    {
-        using var scope = serviceCollection.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>().CreateScope();
-        using var context = scope.ServiceProvider.GetRequiredService<TContext>();
-
-        foreach (var data in _data)
-        {
-            context.Add(data);
-            context.SaveChanges();
-        }
-    }
+    
 
     // private void Migrate<TContext>(IServiceCollection serviceCollection)
     //     where TContext : DbContext
@@ -109,15 +148,6 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
     //     
     //     context.Database.Migrate();
     // }
-    
-    private void EnsureCreated<TContext>(IServiceCollection serviceCollection)
-        where TContext : DbContext
-    {
-        using var scope = serviceCollection.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>().CreateScope();
-        using var context = scope.ServiceProvider.GetRequiredService<TContext>();
-        
-        context.Database.EnsureCreated();
-    }
     
     // private void GetDbContext<TContext>(IServiceCollection serviceCollection)
     //     where TContext : DbContext
