@@ -14,40 +14,17 @@ public class LocalServerDatabase<TEntryPoint> : ServerDatabaseBase<TEntryPoint, 
     {
     }
 
-    public override Server<TEntryPoint> Build<TContext>()
+    protected override void AddDbContext<TContext>(IServiceCollection serviceCollection)
     {
-        Builder.ActionsOnServiceCollection.Add(RemoveDbContext<TContext>);
-
         switch (DbOptions.DbType)
         {
             case LocalDbType.SqlServer:
-                Builder.ActionsOnServiceCollection.Add(AddDbContextForLocalSqlServer<TContext>);
+                AddDbContextForLocalSqlServer<TContext>(serviceCollection);
                 break;
             case LocalDbType.Sqlite:
-                Builder.ActionsOnServiceCollection.Add(AddDbContextForLocalSqlite<TContext>);
+                AddDbContextForLocalSqlite<TContext>(serviceCollection);
                 break;
         }
-
-        return base.Build<TContext>();
-    }
-
-    public Server<TEntryPoint> Build<TOriginalContext, TNewContext>()
-        where TOriginalContext : DbContext
-        where TNewContext : TOriginalContext
-    {
-        Builder.ActionsOnServiceCollection.Add(RemoveDbContext<TOriginalContext>);
-        
-        switch (DbOptions.DbType)
-        {
-            case LocalDbType.SqlServer:
-                Builder.ActionsOnServiceCollection.Add(AddDbContextForLocalSqlServer<TNewContext>);
-                break;
-            case LocalDbType.Sqlite:
-                Builder.ActionsOnServiceCollection.Add(AddDbContextForLocalSqlite<TNewContext>);
-                break;
-        }
-
-        return base.Build<TNewContext>();
     }
 
     private void AddDbContextForLocalSqlServer<TContext>(IServiceCollection serviceCollection)
@@ -59,8 +36,7 @@ public class LocalServerDatabase<TEntryPoint> : ServerDatabaseBase<TEntryPoint, 
                 SqlServerDatabaseNameRegex,
                 "Database=${dbName}_" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ";",
                 RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
-        //RemoveDbContext<TContext>(serviceCollection);
+        
         serviceCollection.AddDbContext<TContext>(o =>
             o.UseSqlServer(DbOptions.ConnectionString, builder => builder.UseHierarchyId()));
     }
@@ -74,8 +50,7 @@ public class LocalServerDatabase<TEntryPoint> : ServerDatabaseBase<TEntryPoint, 
                 SqliteDatabaseNameRegex,
                 "Data Source=${path}${dbName}_" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + "${extension};",
                 RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
-        //RemoveDbContext<TContext>(serviceCollection);
+        
         serviceCollection.AddDbContext<TContext>(o => o.UseSqlite(DbOptions.ConnectionString));
     }
 }

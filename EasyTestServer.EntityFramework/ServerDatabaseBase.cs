@@ -16,6 +16,8 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
         Builder = builder;
         DbOptions = dbOptions;
     }
+    
+    protected abstract void AddDbContext<TContext>(IServiceCollection serviceCollection) where TContext : DbContext;
 
     public ServerDatabaseBase<TEntryPoint, TOptions> WithData(object data)
     {
@@ -81,9 +83,22 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
         return this;
     }
 
-    public virtual Server<TEntryPoint> Build<TContext>() where TContext : DbContext
+    public Server<TEntryPoint> Build<TContext>() where TContext : DbContext
     {
+        Builder.ActionsOnServiceCollection.Add(RemoveDbContext<TContext>);
+        Builder.ActionsOnServiceCollection.Add(AddDbContext<TContext>);
         Builder.ActionsOnServiceCollection.Add(CreateAndFillDb<TContext>);
+        
+        return Builder;
+    }
+
+    public Server<TEntryPoint> Build<TOriginalContext, TNewContext>()
+        where TOriginalContext : DbContext
+        where TNewContext : TOriginalContext
+    {
+        Builder.ActionsOnServiceCollection.Add(RemoveDbContext<TOriginalContext>);
+        Builder.ActionsOnServiceCollection.Add(AddDbContext<TNewContext>);
+        Builder.ActionsOnServiceCollection.Add(CreateAndFillDb<TNewContext>);
 
         return Builder;
     }
@@ -94,6 +109,15 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
         options(DbOptions);
 
         return Build<TContext>();
+    }
+    
+    public Server<TEntryPoint> Build<TOriginalContext, TNewContext>(Action<TOptions> options)
+        where TOriginalContext : DbContext
+        where TNewContext : TOriginalContext
+    {
+        options(DbOptions);
+
+        return Build<TOriginalContext, TNewContext>();
     }
     
     private void CreateAndFillDb<TContext>(IServiceCollection serviceCollection)

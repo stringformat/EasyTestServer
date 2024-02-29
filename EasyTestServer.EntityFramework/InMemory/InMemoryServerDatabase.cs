@@ -9,19 +9,17 @@ public class InMemoryServerDatabase<TEntryPoint> : ServerDatabaseBase<TEntryPoin
     {
     }
 
-    public override Server<TEntryPoint> Build<TContext>()
+    protected override void AddDbContext<TContext>(IServiceCollection serviceCollection)
     {
         switch (DbOptions.DbType)
         {
             case InMemoryDbType.EF:
-                Builder.ActionsOnServiceCollection.Add(ReplaceDbByInMemoryEF<TContext>);
+                ReplaceDbByInMemoryEF<TContext>(serviceCollection);
                 break;
             case InMemoryDbType.Sqlite:
-                Builder.ActionsOnServiceCollection.Add(ReplaceDbByInMemorySqlite<TContext>);
+                ReplaceDbByInMemorySqlite<TContext>(serviceCollection);
                 break;
         }
-
-        return base.Build<TContext>();
     }
     
     private static void ReplaceDbByInMemoryEF<TContext>(IServiceCollection serviceCollection)
