@@ -101,7 +101,8 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
     {
         using var scope = serviceCollection.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>().CreateScope();
         using var context = scope.ServiceProvider.GetRequiredService<TContext>();
-        
+
+        context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
         
         foreach (var sql in _sqls)
