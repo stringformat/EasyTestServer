@@ -1,6 +1,3 @@
-using System.Data.Common;
-using Microsoft.Data.Sqlite;
-
 namespace EasyTestServer.EntityFramework.InMemory;
 
 public class InMemoryServerDatabase<TEntryPoint> : ServerDatabaseBase<TEntryPoint, InMemoryOptions> where TEntryPoint : class

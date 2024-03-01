@@ -1,6 +1,3 @@
-using EasyTestServer.EntityFramework.InMemory;
-using EasyTestServer.EntityFramework.Local;
-
 namespace EasyTestServer.Tests;
 
 public class ServerDatabaseTests
