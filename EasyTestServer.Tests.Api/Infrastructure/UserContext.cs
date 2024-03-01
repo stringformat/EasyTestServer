@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EasyTestServer.Tests.Api.Infrastructure;
 
-public class UserContext(DbContextOptions<UserContext> options) : DbContext(options)
+public class UserContext(DbContextOptions options) : DbContext(options)
 {
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -21,3 +21,5 @@ public class UserContext(DbContextOptions<UserContext> options) : DbContext(opti
             });
     }
 }
+
+public class TestContext(DbContextOptions options) : UserContext(options);

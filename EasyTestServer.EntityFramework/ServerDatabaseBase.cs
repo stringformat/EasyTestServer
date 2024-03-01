@@ -19,6 +19,10 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
     
     protected abstract void AddDbContext<TContext>(IServiceCollection serviceCollection) where TContext : DbContext;
 
+    protected abstract void AddDbContext<TContextService, TContextImplementation>(IServiceCollection serviceCollection)
+        where TContextService: DbContext
+        where TContextImplementation : DbContext, TContextService;
+
     public ServerDatabaseBase<TEntryPoint, TOptions> WithData(object data)
     {
         ArgumentNullException.ThrowIfNull(data);
@@ -92,13 +96,13 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
         return Builder;
     }
 
-    public Server<TEntryPoint> Build<TOriginalContext, TNewContext>()
-        where TOriginalContext : DbContext
-        where TNewContext : TOriginalContext
+    public Server<TEntryPoint> Build<TContextService, TContextImplementation>()
+        where TContextService: DbContext
+        where TContextImplementation : DbContext, TContextService
     {
-        Builder.ActionsOnServiceCollection.Add(RemoveDbContext<TOriginalContext>);
-        Builder.ActionsOnServiceCollection.Add(AddDbContext<TNewContext>);
-        Builder.ActionsOnServiceCollection.Add(CreateAndFillDb<TNewContext>);
+        Builder.ActionsOnServiceCollection.Add(RemoveDbContext<TContextService>);
+        Builder.ActionsOnServiceCollection.Add(AddDbContext<TContextService, TContextImplementation>);
+        Builder.ActionsOnServiceCollection.Add(CreateAndFillDb<TContextService>);
 
         return Builder;
     }

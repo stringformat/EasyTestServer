@@ -3,19 +3,16 @@ using System;
 using EasyTestServer.Tests.Api.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
 namespace EasyTestServer.Tests.Api.Migrations
 {
-    [DbContext(typeof(UserContext))]
-    [Migration("20240226171552_Initial")]
-    partial class Initial
+    [DbContext(typeof(TestContext))]
+    partial class TestContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.2");
