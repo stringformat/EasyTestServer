@@ -98,10 +98,10 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
         return _builder;
     }
     
-    public Server<TEntryPoint> Build<TContext>(DbContext dbContext) where TContext : DbContext
+    public Server<TEntryPoint> Build<TContext>(Func<DbContextOptions<TContext>, TContext> func) where TContext : DbContext
     {
         _builder.ActionsOnServiceCollection.Add(RemoveDbContext<TContext>);
-        _builder.ActionsOnServiceCollection.Add(AddDbContext<TContext>);
+        _builder.ActionsOnServiceCollection.Add(x => AddDbContext(func, x));
         _builder.ActionsOnServiceCollection.Add(CreateAndFillDb<TContext>);
         
         return _builder;
@@ -124,6 +124,14 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
         options(DbOptions);
 
         return Build<TContext>();
+    }
+    
+    public Server<TEntryPoint> Build<TContext>(Func<DbContextOptions<TContext>, TContext> func, Action<TOptions> options)
+        where TContext : DbContext
+    {
+        options(DbOptions);
+
+        return Build(func);
     }
     
     public Server<TEntryPoint> Build<TOriginalContext, TNewContext>(Action<TOptions> options)
