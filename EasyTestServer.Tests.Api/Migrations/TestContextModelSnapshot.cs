@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EasyTestServer.Tests.Api.Migrations
 {
-    [DbContext(typeof(TestContext))]
+    [DbContext(typeof(UserContext))]
     partial class TestContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

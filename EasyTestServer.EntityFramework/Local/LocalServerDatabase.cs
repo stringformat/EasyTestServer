@@ -14,10 +14,23 @@ public class LocalServerDatabase<TEntryPoint> : ServerDatabaseBase<TEntryPoint, 
         switch (DbOptions.DbType)
         {
             case LocalDbType.SqlServer:
-                AddDbContextForLocalSqlServer<TContext>(serviceCollection);
+                AddDbContextForLocalSqlServer<TContext, TContext>(serviceCollection);
                 break;
             case LocalDbType.Sqlite:
-                AddDbContextForLocalSqlite<TContext>(serviceCollection);
+                AddDbContextForLocalSqlite<TContext, TContext>(serviceCollection);
+                break;
+        }
+    }
+
+    protected override void AddDbContext<TContext>(Func<DbContextOptions<TContext>, TContext> func, IServiceCollection serviceCollection)
+    {
+        switch (DbOptions.DbType)
+        {
+            case LocalDbType.SqlServer:
+                AddDbContextForLocalSqlServer(func, serviceCollection);
+                break;
+            case LocalDbType.Sqlite:
+                AddDbContextForLocalSqlite(func, serviceCollection);
                 break;
         }
     }
@@ -35,57 +48,69 @@ public class LocalServerDatabase<TEntryPoint> : ServerDatabaseBase<TEntryPoint, 
         }
     }
 
-    private void AddDbContextForLocalSqlServer<TContext>(IServiceCollection serviceCollection)
-        where TContext : DbContext
-    {
-        if (DbOptions.UseTemporaryDatabase) ReplaceSqlServerConnectionString();
-
-        serviceCollection.AddDbContext<TContext>(o =>
-            o.UseSqlServer(DbOptions.ConnectionString, builder => builder.UseHierarchyId()));
-    }
-    
-    private void AddDbContextForLocalSqlServer<TContextService, TContextImplementation>(IServiceCollection serviceCollection)
-        where TContextService: DbContext
+    private void AddDbContextForLocalSqlServer<TContextService, TContextImplementation>(
+        IServiceCollection serviceCollection)
+        where TContextService : DbContext
         where TContextImplementation : DbContext, TContextService
     {
-        if (DbOptions.UseTemporaryDatabase) ReplaceSqlServerConnectionString();
-        
+        if (DbOptions.UseTemporaryDatabase)
+            DbOptions.ConnectionString = Regex.Replace(
+                DbOptions.ConnectionString,
+                @"Database=(?<dbName>[\w.]+);",
+                "Database=${dbName}_" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ";",
+                RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
         serviceCollection.AddDbContext<TContextService, TContextImplementation>(o =>
             o.UseSqlServer(DbOptions.ConnectionString, builder => builder.UseHierarchyId()));
     }
-
-    private void AddDbContextForLocalSqlite<TContext>(IServiceCollection serviceCollection)
+    
+    private void AddDbContextForLocalSqlServer<TContext>(Func<DbContextOptions<TContext>, TContext> func, IServiceCollection serviceCollection) 
         where TContext : DbContext
     {
-        if (DbOptions.UseTemporaryDatabase) ReplaceSqliteConnectionString();
+        if (DbOptions.UseTemporaryDatabase)
+            DbOptions.ConnectionString = Regex.Replace(
+                DbOptions.ConnectionString,
+                @"Database=(?<dbName>[\w.]+);",
+                "Database=${dbName}_" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ";",
+                RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        
+        var contextOptions = new DbContextOptionsBuilder<TContext>()
+            .UseSqlServer(DbOptions.ConnectionString, builder => builder.UseHierarchyId())
+            .Options;
 
-        serviceCollection.AddDbContext<TContext>(o => o.UseSqlite(DbOptions.ConnectionString));
+        serviceCollection.AddScoped<TContext>(_ => func(contextOptions));
     }
 
-    private void AddDbContextForLocalSqlite<TContextService, TContextImplementation>(IServiceCollection serviceCollection)
-        where TContextService: DbContext
+    private void AddDbContextForLocalSqlite<TContextService, TContextImplementation>(
+        IServiceCollection serviceCollection)
+        where TContextService : DbContext
         where TContextImplementation : DbContext, TContextService
     {
-        if (DbOptions.UseTemporaryDatabase) ReplaceSqliteConnectionString();
+        if (DbOptions.UseTemporaryDatabase)
+            DbOptions.ConnectionString = Regex.Replace(
+                DbOptions.ConnectionString,
+                @"Data Source=(?<path>.+\\|.+/|)(?<dbName>[\w]+)(?<extension>.db);",
+                "Data Source=${path}${dbName}_" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + "${extension};",
+                RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        serviceCollection.AddDbContext<TContextService, TContextImplementation>(o =>
+            o.UseSqlite(DbOptions.ConnectionString));
+    }
+    
+    private void AddDbContextForLocalSqlite<TContext>(Func<DbContextOptions<TContext>, TContext> func, IServiceCollection serviceCollection) 
+        where TContext : DbContext
+    {
+        if (DbOptions.UseTemporaryDatabase)
+            DbOptions.ConnectionString = Regex.Replace(
+                DbOptions.ConnectionString,
+                @"Data Source=(?<path>.+\\|.+/|)(?<dbName>[\w]+)(?<extension>.db);",
+                "Data Source=${path}${dbName}_" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + "${extension};",
+                RegexOptions.Compiled | RegexOptions.CultureInvariant);
         
-        serviceCollection.AddDbContext<TContextService, TContextImplementation>(o => o.UseSqlite(DbOptions.ConnectionString));
-    }
-    
-    private void ReplaceSqlServerConnectionString()
-    {
-        DbOptions.ConnectionString = Regex.Replace(
-            DbOptions.ConnectionString,
-            @"Database=(?<dbName>[\w.]+);",
-            "Database=${dbName}_" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ";",
-            RegexOptions.Compiled | RegexOptions.CultureInvariant);
-    }
-    
-    private void ReplaceSqliteConnectionString()
-    {
-        DbOptions.ConnectionString = Regex.Replace(
-            DbOptions.ConnectionString,
-            @"Data Source=(?<path>.+\\|.+/|)(?<dbName>[\w]+)(?<extension>.db);",
-            "Data Source=${path}${dbName}_" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + "${extension};",
-            RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        var contextOptions = new DbContextOptionsBuilder<TContext>()
+            .UseSqlite(DbOptions.ConnectionString)
+            .Options;
+
+        serviceCollection.AddScoped<TContext>(_ => func(contextOptions));
     }
 }

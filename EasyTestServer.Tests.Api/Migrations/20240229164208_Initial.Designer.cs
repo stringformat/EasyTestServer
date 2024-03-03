@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EasyTestServer.Tests.Api.Migrations
 {
-    [DbContext(typeof(TestContext))]
+    [DbContext(typeof(UserContext))]
     [Migration("20240229164208_Initial")]
     partial class Initial
     {

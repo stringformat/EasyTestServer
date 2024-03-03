@@ -5,19 +5,21 @@ namespace EasyTestServer.EntityFramework;
 
 public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoint : class
 {
+    private readonly Server<TEntryPoint> _builder;
     private readonly Collection<object> _data = [];
     private readonly Collection<string> _sqls = [];
-    
-    protected readonly Server<TEntryPoint> Builder;
+
     protected readonly TOptions DbOptions;
 
     protected ServerDatabaseBase(Server<TEntryPoint> builder, TOptions dbOptions)
     {
-        Builder = builder;
+        _builder = builder;
         DbOptions = dbOptions;
     }
     
     protected abstract void AddDbContext<TContext>(IServiceCollection serviceCollection) where TContext : DbContext;
+    
+    protected abstract void AddDbContext<TContext>(Func<DbContextOptions<TContext>, TContext> func, IServiceCollection serviceCollection) where TContext : DbContext;
 
     protected abstract void AddDbContext<TContextService, TContextImplementation>(IServiceCollection serviceCollection)
         where TContextService: DbContext
@@ -89,22 +91,31 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
 
     public Server<TEntryPoint> Build<TContext>() where TContext : DbContext
     {
-        Builder.ActionsOnServiceCollection.Add(RemoveDbContext<TContext>);
-        Builder.ActionsOnServiceCollection.Add(AddDbContext<TContext>);
-        Builder.ActionsOnServiceCollection.Add(CreateAndFillDb<TContext>);
+        _builder.ActionsOnServiceCollection.Add(RemoveDbContext<TContext>);
+        _builder.ActionsOnServiceCollection.Add(AddDbContext<TContext>);
+        _builder.ActionsOnServiceCollection.Add(CreateAndFillDb<TContext>);
         
-        return Builder;
+        return _builder;
+    }
+    
+    public Server<TEntryPoint> Build<TContext>(DbContext dbContext) where TContext : DbContext
+    {
+        _builder.ActionsOnServiceCollection.Add(RemoveDbContext<TContext>);
+        _builder.ActionsOnServiceCollection.Add(AddDbContext<TContext>);
+        _builder.ActionsOnServiceCollection.Add(CreateAndFillDb<TContext>);
+        
+        return _builder;
     }
 
     public Server<TEntryPoint> Build<TContextService, TContextImplementation>()
         where TContextService: DbContext
         where TContextImplementation : DbContext, TContextService
     {
-        Builder.ActionsOnServiceCollection.Add(RemoveDbContext<TContextService>);
-        Builder.ActionsOnServiceCollection.Add(AddDbContext<TContextService, TContextImplementation>);
-        Builder.ActionsOnServiceCollection.Add(CreateAndFillDb<TContextService>);
+        _builder.ActionsOnServiceCollection.Add(RemoveDbContext<TContextService>);
+        _builder.ActionsOnServiceCollection.Add(AddDbContext<TContextService, TContextImplementation>);
+        _builder.ActionsOnServiceCollection.Add(CreateAndFillDb<TContextService>);
 
-        return Builder;
+        return _builder;
     }
 
     public Server<TEntryPoint> Build<TContext>(Action<TOptions> options)
@@ -145,43 +156,9 @@ public abstract class ServerDatabaseBase<TEntryPoint, TOptions> where TEntryPoin
         }
     }
 
-    // public Server<TEntryPoint> Build<TContext>(out DbContext dbContext)
-    //     where TContext : DbContext
-    // {
-    //     dbContext = _dbContext;
-    //     
-    //     return Build<TContext>();
-    // }
-    //
-    // public Server<TEntryPoint> Build<TContext>(Action<TOptions> options, out DbContext dbContext)
-    //     where TContext : DbContext
-    // {
-    //     options(DbOptions);
-    //     dbContext = _dbContext;
-    //     
-    //     return Build<TContext>();
-    // }
-    
-    protected static void RemoveDbContext<TContext>(IServiceCollection serviceCollection) where TContext : DbContext
+    private static void RemoveDbContext<TContext>(IServiceCollection serviceCollection) where TContext : DbContext
     {
         serviceCollection.RemoveService<DbContextOptions<TContext>>();
         serviceCollection.RemoveService<DbConnection>();
     }
-    
-
-    // private void Migrate<TContext>(IServiceCollection serviceCollection)
-    //     where TContext : DbContext
-    // {
-    //     using var scope = serviceCollection.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>().CreateScope();
-    //     using var context = scope.ServiceProvider.GetRequiredService<TContext>();
-    //     
-    //     context.Database.Migrate();
-    // }
-    
-    // private void GetDbContext<TContext>(IServiceCollection serviceCollection)
-    //     where TContext : DbContext
-    // {
-    //     using var scope = serviceCollection.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>().CreateScope();
-    //     _dbContext = scope.ServiceProvider.GetRequiredService<TContext>();
-    // }
 }

@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddTransient<IUserRepository, UserRepository>();
-builder.Services.AddDbContext<UserContext, TestContext>(optionsBuilder => optionsBuilder.UseSqlite("Data Source=../EasyTestServer.Tests.Api/test.db"));
+builder.Services.AddDbContext<UserContext>(optionsBuilder => optionsBuilder.UseSqlite("Data Source=../EasyTestServer.Tests.Api/test.db"));
 builder.Services.AddSingleton<TokenService>();
 
 builder.Services.AddAuthentication(config =>

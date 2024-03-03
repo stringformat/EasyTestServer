@@ -11,12 +11,17 @@ public class InMemoryServerDatabase<TEntryPoint> : ServerDatabaseBase<TEntryPoin
         switch (DbOptions.DbType)
         {
             case InMemoryDbType.EF:
-                ReplaceDbByInMemoryEF<TContext>(serviceCollection);
+                ReplaceDbByInMemoryEF<TContext, TContext>(serviceCollection);
                 break;
             case InMemoryDbType.Sqlite:
-                ReplaceDbByInMemorySqlite<TContext>(serviceCollection);
+                ReplaceDbByInMemorySqlite<TContext, TContext>(serviceCollection);
                 break;
         }
+    }
+
+    protected override void AddDbContext<TContext>(Func<DbContextOptions<TContext>, TContext> func, IServiceCollection serviceCollection)
+    {
+        throw new NotImplementedException();
     }
 
     protected override void AddDbContext<TContextService, TContextImplementation>(IServiceCollection serviceCollection)
@@ -31,37 +36,12 @@ public class InMemoryServerDatabase<TEntryPoint> : ServerDatabaseBase<TEntryPoin
                 break;
         }
     }
-
-    private static void ReplaceDbByInMemoryEF<TContext>(IServiceCollection serviceCollection)
-        where TContext : DbContext
-    {
-        serviceCollection.AddDbContext<TContext>(o => o.UseInMemoryDatabase(Guid.NewGuid().ToString(), optionsBuilder => optionsBuilder.UseHierarchyId()));
-    }
     
     private static void ReplaceDbByInMemoryEF<TContextService, TContextImplementation>(IServiceCollection serviceCollection)
         where TContextService: DbContext
         where TContextImplementation : DbContext, TContextService
     {
         serviceCollection.AddDbContext<TContextService, TContextImplementation>(o => o.UseInMemoryDatabase(Guid.NewGuid().ToString(), optionsBuilder => optionsBuilder.UseHierarchyId()));
-    }
-    
-    private static void ReplaceDbByInMemorySqlite<TContext>(IServiceCollection serviceCollection)
-        where TContext : DbContext
-    {
-        // serviceCollection.AddSingleton<DbConnection, SqliteConnection>(_ =>
-        // {
-        //     var connection = new SqliteConnection("Data Source=:memory:");
-        //     connection.Open();
-        //     return connection;
-        // });
-        //
-        // serviceCollection.AddDbContext<TContext>((serviceProvider, options) =>
-        // {
-        //     var connection = serviceProvider.GetRequiredService<DbConnection>();
-        //     options.UseSqlite(connection);
-        // });
-        
-        serviceCollection.AddDbContext<TContext>(o => o.UseSqlite("DataSource=:memory:"));
     }
     
     private static void ReplaceDbByInMemorySqlite<TContextService, TContextImplementation>(IServiceCollection serviceCollection)
