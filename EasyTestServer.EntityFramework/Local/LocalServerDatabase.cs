@@ -73,12 +73,15 @@ public class LocalServerDatabase<TEntryPoint> : ServerDatabaseBase<TEntryPoint, 
                 @"Database=(?<dbName>[\w.]+);",
                 "Database=${dbName}_" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ";",
                 RegexOptions.Compiled | RegexOptions.CultureInvariant);
-        
-        var contextOptions = new DbContextOptionsBuilder<TContext>()
-            .UseSqlServer(DbOptions.ConnectionString, builder => builder.UseHierarchyId())
-            .Options;
 
-        serviceCollection.AddScoped<TContext>(_ => func(contextOptions));
+        serviceCollection.AddScoped<TContext>(_ =>
+        {
+            var contextOptions = new DbContextOptionsBuilder<TContext>()
+                .UseSqlServer(DbOptions.ConnectionString, builder => builder.UseHierarchyId())
+                .Options;
+            
+            return func(contextOptions);
+        });
     }
 
     private void AddDbContextForLocalSqlite<TContextService, TContextImplementation>(
@@ -106,11 +109,14 @@ public class LocalServerDatabase<TEntryPoint> : ServerDatabaseBase<TEntryPoint, 
                 @"Data Source=(?<path>.+\\|.+/|)(?<dbName>[\w]+)(?<extension>.db);",
                 "Data Source=${path}${dbName}_" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + "${extension};",
                 RegexOptions.Compiled | RegexOptions.CultureInvariant);
-        
-        var contextOptions = new DbContextOptionsBuilder<TContext>()
-            .UseSqlite(DbOptions.ConnectionString)
-            .Options;
 
-        serviceCollection.AddScoped<TContext>(_ => func(contextOptions));
+        serviceCollection.AddScoped<TContext>(_ =>
+        {
+            var contextOptions = new DbContextOptionsBuilder<TContext>()
+                .UseSqlite(DbOptions.ConnectionString)
+                .Options;
+            
+            return func(contextOptions);
+        });
     }
 }
